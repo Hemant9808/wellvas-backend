@@ -116,10 +116,51 @@ const updateOrderStatus= async (req, res) => {
 }
 
 
+// const getMyOrders = async (req, res) => {
+//   const orders = await Order.find({ user: req.user._id });
+//   res.json(orders);
+// }
+
 const getMyOrders = async (req, res) => {
-  const orders = await Order.find({ user: req.user._id });
-  res.json(orders);
-}
+  try {
+    const orders = await Order.find({ user: req.user._id })
+      .populate({
+        path: 'items.productId._id',
+        model: 'Product',
+        select: 'images' // Only populate the images field from Product
+      })
+      .lean(); // Convert to plain JavaScript objects
+
+    // Map through orders and items to add image URL to each item
+    const ordersWithImages = orders.map(order => {
+      const itemsWithImages = order.items.map(item => {
+        // Use the populated product data or fall back to embedded data
+        const product = item.productId._id || item.productId;
+        const imageUrl = product?.images?.[0]?.url || 'https://via.placeholder.com/80';
+        
+        return {
+          ...item,
+          image: imageUrl, // Add image URL to each item
+          // Ensure we keep all other product data
+          productId: {
+            ...item.productId,
+            image: imageUrl // Also add to productId for consistency
+          }
+        };
+      });
+
+      return {
+        ...order,
+        items: itemsWithImages
+      };
+    });
+
+    res.json(ordersWithImages);
+  } catch (error) {
+    console.error('Error fetching orders:', error);
+    res.status(500).json({ message: 'Failed to fetch orders' });
+  }
+};
 
 
 const getAllOrders = async (req, res) => {
