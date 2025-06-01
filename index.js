@@ -22,7 +22,7 @@ app.use(bodyParser.json({ limit: '30mb', extended: true }));
 app.use(bodyParser.urlencoded({ limit: '30mb', extended: true }));
 // app.use(cors()); 
 app.use(cors({
-  origin: [ 'http://localhost:3000', 'http://localhost:5173','http://localhost:5174', 'https://wellvas.com.com'],
+  origin: [ 'http://localhost:3000', 'http://localhost:5173','http://localhost:5174', 'https://wellvas.com'],
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
   allowedHeaders: ['Content-Type', 'Authorization'],
   credentials: true
