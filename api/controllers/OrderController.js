@@ -163,10 +163,119 @@ const getMyOrders = async (req, res) => {
 };
 
 
+// const getAllOrders = async (req, res) => {
+//   const orders = await Order.find({}).populate('user', 'id name').sort({createdAt:-1});
+//   res.json(orders);
+// }
+
 const getAllOrders = async (req, res) => {
-  const orders = await Order.find({}).populate('user', 'id name').sort({createdAt:-1});
-  res.json(orders);
-}
+  try {
+    const page = parseInt(req.query.page) || 1;
+    const limit = parseInt(req.query.limit) || 10;
+    const skip = (page - 1) * limit;
+
+    const orders = await Order.find()
+      .populate('user', 'name email')
+      .sort({ createdAt: -1 })
+      .skip(skip)
+      .limit(limit);
+
+    const total = await Order.countDocuments();
+    const totalPages = Math.ceil(total / limit);
+
+    res.json({
+      orders,
+      currentPage: page,
+      totalPages,
+      totalOrders: total
+    });
+  } catch (error) {
+    console.error('Error in getAllOrders:', error);
+    res.status(500).json({ message: 'Error fetching orders', error: error.message });
+  }
+};
+
+// const getOrderStatistics = async (req, res) => {
+//   try {
+//     const today = new Date();
+//     today.setHours(0, 0, 0, 0);
+
+//     const lastWeek = new Date();
+//     lastWeek.setDate(lastWeek.getDate() - 7);
+
+//     const lastMonth = new Date();
+//     lastMonth.setMonth(lastMonth.getMonth() - 1);
+
+//     const [todayOrders, lastWeekOrders, lastMonthOrders] = await Promise.all([
+//       Order.countDocuments({ createdAt: { $gte: today } }),
+//       Order.countDocuments({ createdAt: { $gte: lastWeek } }),
+//       Order.countDocuments({ createdAt: { $gte: lastMonth } })
+//     ]);
+
+//     res.json({
+//       today: todayOrders,
+//       lastWeek: lastWeekOrders,
+//       lastMonth: lastMonthOrders
+//     });
+//   } catch (error) {
+//     console.error('Error in getOrderStatistics:', error);
+//     res.status(500).json({ message: 'Error fetching order statistics', error: error.message });
+//   }
+// };
+
+
+const getOrderStatistics = async (req, res) => {
+  try {
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+
+    const lastWeek = new Date();
+    lastWeek.setDate(lastWeek.getDate() - 7);
+
+    const lastMonth = new Date();
+    lastMonth.setMonth(lastMonth.getMonth() - 1);
+
+    // Get order counts
+    const [todayOrders, lastWeekOrders, lastMonthOrders] = await Promise.all([
+      Order.countDocuments({ createdAt: { $gte: today } }),
+      Order.countDocuments({ createdAt: { $gte: lastWeek } }),
+      Order.countDocuments({ createdAt: { $gte: lastMonth } })
+    ]);
+
+    // Get sales data
+    const [todaySales, lastWeekSales, lastMonthSales] = await Promise.all([
+      Order.aggregate([
+        { $match: { createdAt: { $gte: today } } },
+        { $group: { _id: null, total: { $sum: "$totalPrice" } } }
+      ]),
+      Order.aggregate([
+        { $match: { createdAt: { $gte: lastWeek } } },
+        { $group: { _id: null, total: { $sum: "$totalPrice" } } }
+      ]),
+      Order.aggregate([
+        { $match: { createdAt: { $gte: lastMonth } } },
+        { $group: { _id: null, total: { $sum: "$totalPrice" } } }
+      ])
+    ]);
+
+    res.json({
+      orders: {
+        today: todayOrders,
+        lastWeek: lastWeekOrders,
+        lastMonth: lastMonthOrders
+      },
+      sales: {
+        today: todaySales[0]?.total || 0,
+        lastWeek: lastWeekSales[0]?.total || 0,
+        lastMonth: lastMonthSales[0]?.total || 0
+      }
+    });
+  } catch (error) {
+    console.error('Error in getOrderStatistics:', error);
+    res.status(500).json({ message: 'Error fetching order statistics', error: error.message });
+  }
+};
+
 
 module.exports = {
   createOrder,
@@ -175,4 +284,5 @@ module.exports = {
   updateOrderStatus,
   getMyOrders,
   getAllOrders,
+  getOrderStatistics,
 };
