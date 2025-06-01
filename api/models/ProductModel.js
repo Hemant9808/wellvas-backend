@@ -62,6 +62,14 @@ const ProductSchema = new Schema(
         },
       },
     ],
+    isFeatured :{
+      type: Boolean,
+      default: false, // Default value for isFeatured
+    },
+    isBestSelling :{
+      type: Boolean,
+      default: false, // Default value for isBestSelling
+    }
   },
   {
     timestamps: true, // Automatically adds `createdAt` and `updatedAt` fields

@@ -309,9 +309,57 @@ const getAllPrescription =async(req,res)=>{
     res.send(error.message)
     console.log(error)
   }
-
-
 }
+
+const markProductAsFeatured = async (req, res) => {
+  const { productId } = req.body;
+
+  if (!productId) {
+    return res.status(400).send({ message: "Product ID is required" });
+  }
+
+  try {
+    const updatedProduct = await Product.findByIdAndUpdate(
+      productId,
+      { isFeatured: true },
+      { new: true }
+    );
+
+    if (!updatedProduct) {
+      return res.status(404).send({ message: "Product not found" });
+    }
+
+    res.status(200).send({ message: "Product marked as featured", product: updatedProduct });
+  } catch (error) {
+    res.status(500).send({ message: "Server error", error: error.message });
+  }
+};
+
+
+
+const markProductAsBestSelling = async (req, res) => {
+  const { productId } = req.body;
+
+  if (!productId) {
+    return res.status(400).send({ message: "Product ID is required" });
+  }
+
+  try {
+    const updatedProduct = await Product.findByIdAndUpdate(
+      productId,
+      { isBestSelling: true },
+      { new: true }
+    );
+
+    if (!updatedProduct) {
+      return res.status(404).send({ message: "Product not found" });
+    }
+
+    res.status(200).send({ message: "Product marked as best-selling", product: updatedProduct });
+  } catch (error) {
+    res.status(500).send({ message: "Server error", error: error.message });
+  }
+};
 
 
 module.exports = {
@@ -323,5 +371,7 @@ module.exports = {
   getProductBySubcategories,
   uploadImage,
   addPrescription,
-  getAllPrescription
+  getAllPrescription,
+  markProductAsFeatured,
+  markProductAsBestSelling,
 };
