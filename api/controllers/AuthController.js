@@ -175,6 +175,58 @@ resetPassword = async (req, res, next) => {
   }
 };
 
+updateUserInfo = async (req, res, next) => {
+  try {
+    const userId = req.user.id;
+    const { firstName, lastName, userName, email, phone } = req.body;
+    console.log("updateUserInfo",req.body);
+
+    const updatedUser = await User.findByIdAndUpdate(
+      userId,
+      { firstName, lastName, userName, email, phone },
+      { new: true, runValidators: true }
+    ).select('-password');
+
+    if (!updatedUser) {
+      return res.status(404).send({ message: 'User not found' });
+    }
+
+    res.status(200).send({ user: updatedUser, message: 'User info updated successfully' });
+  } catch (error) {
+    console.log("Update user error", error);
+    next(new AppError('Unable to update user info', 500));
+  }
+};
+
+
+makeAdmin = async (req, res, next) => {
+  try {
+    const currentUserId = req.user.id;
+    const targetUserId = req.params.id;
+
+    const currentUser = await User.findById(currentUserId);
+    if (!currentUser || currentUser.role !== 'admin') {
+      return res.status(403).send({ message: 'Access denied. Only admins can perform this action.' });
+    }
+
+    const updatedUser = await User.findByIdAndUpdate(
+      targetUserId,
+      { role: 'admin' },
+      { new: true }
+    ).select('-password');
+
+    if (!updatedUser) {
+      return res.status(404).send({ message: 'Target user not found' });
+    }
+
+    res.status(200).send({ message: 'User promoted to admin', user: updatedUser });
+  } catch (error) {
+    console.log("Make admin error", error);
+    next(new AppError('Unable to make user admin', 500));
+  }
+};
+
+
 
 
   

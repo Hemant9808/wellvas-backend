@@ -50,16 +50,33 @@ const createOrder = async(req, res) => {
    
   }
 
-const getOrderById = async (req, res) => {
-  const order = await Order.findById(req.params.id).populate('user', 'name email');
+// const getOrderById = async (req, res) => {
+//   const order = await Order.findById(req.params.id).populate('user', 'name email');
 
-  if (order) {
-    res.json(order);
-  } else {
-    res.status(404);
-    throw new Error('Order not found');
+//   if (order) {
+//     res.json(order);
+//   } else {
+//     res.status(404);
+//     throw new Error('Order not found');
+//   }
+// }
+
+const getOrderById = async (req, res) => {
+  try {
+    const order = await Order.findById(req.params.id)
+      .populate('user', 'name email')
+      .populate('items.productId', 'name price brand');
+
+    if (!order) {
+      return res.status(404).json({ message: "Order not found" });
+    }
+
+    res.status(200).json(order);
+  } catch (error) {
+    res.status(500).json({ message: error.message });
   }
-}
+};
+
 
 
 const updateOrderToPaid = async (req, res) => {

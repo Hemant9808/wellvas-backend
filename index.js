@@ -9,6 +9,7 @@ const CategoryRouter = require('./api/routes/CategoryRouter');
 const OrderRoutes = require('./api/routes/OrderRouter');
 const PaymentRoutes = require('./api/routes/PaymentRouter');
 const BlogRoutes = require('./api/routes/BlogRouter')
+const contactRoutes = require('./api/routes/ContactRoutes');
 // import Razorpay from "razorpay";
 const Razorpay = require("razorpay")
 
@@ -37,6 +38,7 @@ app.use('/category',CategoryRouter)
 app.use('/order',OrderRoutes);
 app.use('/payment',PaymentRoutes);
 app.use('/blogs',BlogRoutes)
+app.use('/contact',contactRoutes)
 
 
 // cron.schedule('* * * * *', () => {
