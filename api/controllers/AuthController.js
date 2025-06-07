@@ -74,7 +74,7 @@ login = async (req, res,next) => {
     }
     console.log("ddd")
     console.log(password,user, user.password)
-    const matchPassword = await bcrypt.compare(password, user.password || '');
+    const matchPassword = await bcrypt.compare(password, user.password);
 
     if (!matchPassword) {
       const emailOptions = {
@@ -202,18 +202,27 @@ updateUserInfo = async (req, res, next) => {
 makeAdmin = async (req, res, next) => {
   try {
     const currentUserId = req.user.id;
-    const targetUserId = req.params.id;
+    const targetUserEmail = req.body.email;
 
-    const currentUser = await User.findById(currentUserId);
+    console.log("currentUserId",currentUserId);
+    // console.log("targetUserId",targetUserId);
+
+
+    const currentUser = await User.findOne({_id: currentUserId}).select('role _id');
+    
     if (!currentUser || currentUser.role !== 'admin') {
       return res.status(403).send({ message: 'Access denied. Only admins can perform this action.' });
     }
 
-    const updatedUser = await User.findByIdAndUpdate(
-      targetUserId,
+    console.log("currentUser",currentUser._id);
+
+   const updatedUser = await User.findOneAndUpdate(
+      { email: targetUserEmail },
       { role: 'admin' },
       { new: true }
     ).select('-password');
+
+    console.log("updatedUser",updatedUser);
 
     if (!updatedUser) {
       return res.status(404).send({ message: 'Target user not found' });
@@ -226,9 +235,87 @@ makeAdmin = async (req, res, next) => {
   }
 };
 
+// POST /auth/changePassword
+// const changePassword = async (req, res, next) => {
+//   try {
+//     const userId = req.user.id;
+//     const { currentPassword, newPassword } = req.body;
+
+//     if (!currentPassword || !newPassword ) {
+//       return res.status(400).json({ message: 'All fields are required.' });
+//     }
+
+
+
+//     const user = await User.findById(userId).select('+password');
+//     console.log("user",user);
+//     if (!user) {
+//       return res.status(404).json({ message: 'User not found.' });
+//     }
+
+//     console.log("currentPassword",user.password);
+
+//     const isMatch = await bcrypt.compare(currentPassword, user.password);
+//     console.log("currentPassword",currentPassword,user.password);
+//     console.log("isMatch",isMatch);
+
+//     if (!isMatch) {
+//       return res.status(401).json({ message: 'Current password is incorrect.' });
+//     }
+
+//     user.password = newPassword;
+//     await user.save();
+
+//     res.status(200).json({ message: 'Password changed successfully.' });
+//   } catch (err) {
+//     console.error('Change password error:', err);
+//     next(new AppError('Error changing password', 500));
+//   }
+// };
+const changePassword = async (req, res, next) => {
+  try {
+    const userId = req.user.id;
+    const { currentPassword, newPassword } = req.body;
+
+    // Validate input
+    if (!currentPassword || !newPassword) {
+      return res.status(400).json({ message: 'Current and new passwords are required.' });
+    }
+
+    // Optional: Validate password strength
+    if (newPassword.length < 8) {
+      return res.status(400).json({ message: 'Password must be at least 8 characters.' });
+    }
+
+    // Get user + password (since select:false in schema)
+    const user = await User.findById(userId).select('+password');
+    if (!user) {
+      return res.status(404).json({ message: 'User not found.' });
+    }
+
+    // Verify current password
+    const isMatch = await bcrypt.compare(currentPassword, user.password);
+    if (!isMatch) {
+      return res.status(401).json({ message: 'Current password is incorrect.' });
+    }
+
+    // Hash and save new password
+    const salt = await bcrypt.genSalt();
+    user.password = await bcrypt.hash(newPassword, salt); // ✅ Securely hash
+    await user.save();
+
+    // Invalidate old tokens (optional, for security)
+    // Example: await Token.deleteMany({ userId });
+
+    return res.status(200).json({ message: 'Password changed successfully.' });
+  } catch (err) {
+    console.error('Change password error:', err);
+    next(new AppError('Error changing password', 500));
+  }
+};
 
 
 
   
 
-module.exports = { signup, login,forgotPassword,resetPassword };
+module.exports = { signup, login,forgotPassword,resetPassword,changePassword };

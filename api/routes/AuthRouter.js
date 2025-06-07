@@ -1,5 +1,5 @@
 const express = require('express');
-const { login, signup, forgotPassword } = require('../controllers/AuthController'); 
+const { login, signup, forgotPassword, changePassword } = require('../controllers/AuthController'); 
 const { adminLogin } = require('../controllers/AdminController');
 const { protect } = require('../middlewares/authMiddleware');
 
@@ -11,7 +11,9 @@ router.post('/adminLogin', adminLogin);
 router.post('/forgotPassword', forgotPassword); 
 router.post('/resetPassword/:token', resetPassword); 
 router.post('/updateUserInfo',protect, updateUserInfo); 
-router.post('makeAdmin',protect, makeAdmin); 
+router.post('/makeAdmin',protect, makeAdmin); 
+router.post('/changePassword',protect, changePassword); 
+
 
 
 

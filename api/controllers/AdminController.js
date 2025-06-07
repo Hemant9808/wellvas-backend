@@ -35,6 +35,7 @@ const adminLogin = async (req, res, next) => {
 
     // Verify password
     const isPasswordValid = await bcrypt.compare(password, admin.password);
+    console.log("isPasswordValid", isPasswordValid,password, admin.password);
     if (!isPasswordValid) {
       return res.status(401).json({
         status: 'error',

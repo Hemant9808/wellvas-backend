@@ -135,7 +135,7 @@ const addProducts = async (req, res) => {
 
     const categoryIds = [];
 
-    let findCategory = await Category.findOne({ name: category[0] });
+    let findCategory = await Category.findOne({ _id: category[0] });
     console.log("findCategory", findCategory);
       
     categoryIds.push(findCategory._id);
