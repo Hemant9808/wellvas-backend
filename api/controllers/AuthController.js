@@ -3,7 +3,7 @@ const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
 const User = require("../models/UserModel");
 const crypto = require('crypto');
-
+const Order = require('../models/OrderModel');
 const nodemailer = require("nodemailer");
 const AppError = require("../utils/error");
 const { payment, welcome } = require("../utils/constant");
@@ -235,43 +235,7 @@ makeAdmin = async (req, res, next) => {
   }
 };
 
-// POST /auth/changePassword
-// const changePassword = async (req, res, next) => {
-//   try {
-//     const userId = req.user.id;
-//     const { currentPassword, newPassword } = req.body;
 
-//     if (!currentPassword || !newPassword ) {
-//       return res.status(400).json({ message: 'All fields are required.' });
-//     }
-
-
-
-//     const user = await User.findById(userId).select('+password');
-//     console.log("user",user);
-//     if (!user) {
-//       return res.status(404).json({ message: 'User not found.' });
-//     }
-
-//     console.log("currentPassword",user.password);
-
-//     const isMatch = await bcrypt.compare(currentPassword, user.password);
-//     console.log("currentPassword",currentPassword,user.password);
-//     console.log("isMatch",isMatch);
-
-//     if (!isMatch) {
-//       return res.status(401).json({ message: 'Current password is incorrect.' });
-//     }
-
-//     user.password = newPassword;
-//     await user.save();
-
-//     res.status(200).json({ message: 'Password changed successfully.' });
-//   } catch (err) {
-//     console.error('Change password error:', err);
-//     next(new AppError('Error changing password', 500));
-//   }
-// };
 const changePassword = async (req, res, next) => {
   try {
     const userId = req.user.id;
@@ -315,7 +279,127 @@ const changePassword = async (req, res, next) => {
 };
 
 
+// GET /api/user/getUser
+getUser = async (req, res, next) => {
+  try {
+    const { userId, email } = req.body;
 
-  
+    if (!userId && !email) {
+      return res.status(400).json({ message: 'Please provide userId or email' });
+    }
 
-module.exports = { signup, login,forgotPassword,resetPassword,changePassword };
+    const user = await User.findOne(
+      userId ? { _id: userId } : { email }
+    ).select('-password');
+
+    if (!user) {
+      return res.status(404).json({ message: 'User not found' });
+    }
+
+    res.status(200).json({ user });
+  } catch (error) {
+    console.error('Error fetching user:', error);
+    next(new AppError('Unable to fetch user info', 500));
+  }
+};
+
+
+// GET /api/user/allUsers?page=1&limit=10
+getAllUsers = async (req, res, next) => {
+  try {
+    const page = parseInt(req.query.page) || 1;
+    const limit = parseInt(req.query.limit) || 10;
+    const skip = (page - 1) * limit;
+
+    console.log("page",page,limit,skip);
+
+    const users = await User.find()
+      .sort({ createdAt: -1 })
+      .skip(skip)
+      .limit(limit)
+      .select('-password');
+
+    const totalUsers = await User.countDocuments();
+
+    res.status(200).json({
+      total: totalUsers,
+      page,
+      totalPages: Math.ceil(totalUsers / limit),
+      users,
+    });
+  } catch (error) {
+    console.error('Get all users error:', error);
+    next(new AppError('Unable to fetch users', 500));
+  }
+};
+
+
+
+// GET /api/user/frequent-buyers?page=1&limit=10
+ // Adjust path accordingly
+
+
+
+// GET /api/user/frequent-buyers?page=1&limit=10
+getFrequentBuyers = async (req, res, next) => {
+  try {
+    const page = parseInt(req.query.page) || 1;
+    const limit = parseInt(req.query.limit) || 10;
+    const skip = (page - 1) * limit;
+
+    const buyers = await Order.aggregate([
+      {
+        $group: {
+          _id: '$user',
+          orderCount: { $sum: 1 }
+        }
+      },
+      {
+        $sort: { orderCount: -1 }
+      },
+      {
+        $skip: skip
+      },
+      {
+        $limit: limit
+      },
+      {
+        $lookup: {
+          from: 'users',
+          localField: '_id',
+          foreignField: '_id',
+          as: 'user'
+        }
+      },
+      {
+        $unwind: '$user'
+      },
+      {
+        $project: {
+          _id: 0,
+          userId: '$_id',
+          orderCount: 1,
+          user: {
+            firstName: '$user.firstName',
+            lastName: '$user.lastName',
+            email: '$user.email',
+            phone: '$user.phone',
+            createdAt: '$user.createdAt'
+          }
+        }
+      }
+    ]);
+
+    res.status(200).json({
+      page,
+      limit,
+      buyers
+    });
+  } catch (err) {
+    console.error('Frequent buyers error:', err);
+    res.status(500).json({ message: 'Unable to fetch frequent buyers' });
+  }
+};
+
+
+module.exports = { signup, login,forgotPassword,resetPassword,changePassword,getFrequentBuyers,getUser ,getAllUsers};

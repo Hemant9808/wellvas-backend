@@ -26,7 +26,7 @@ exports.submitContactForm = async (req, res) => {
 
 exports.getAllMessages = async (req, res) => {
   try {
-    const messages = await Contact.find().sort({ createdAt: -1 }); // newest first
+    const messages = await ContactMessageModel.find().sort({ createdAt: -1 }); // newest first
     res.status(200).json(messages);
   } catch (error) {
     res.status(500).json({ error: "Failed to fetch contact messages" });

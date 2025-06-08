@@ -361,6 +361,31 @@ const markProductAsBestSelling = async (req, res) => {
   }
 };
 
+const updateStock = async (req, res) => {
+  const { id,stock } = req.body;
+
+  if (!id) {
+    return res.status(400).send({ message: "Product ID is required" });
+  }
+
+  try {
+    const updatedProduct = await Product.findByIdAndUpdate(
+      id,
+      { stock: stock },
+      { new: true }
+    );
+
+    if (!updatedProduct) {
+      return res.status(404).send({ message: "Product not found" });
+    }
+
+    res.status(200).send({ message: "Product marked as best-selling", product: updatedProduct });
+  } catch (error) {
+    res.status(500).send({ message: "Server error", error: error.message });
+  }
+};
+
+
 
 module.exports = {
   addProducts,
@@ -374,4 +399,5 @@ module.exports = {
   getAllPrescription,
   markProductAsFeatured,
   markProductAsBestSelling,
+  updateStock
 };

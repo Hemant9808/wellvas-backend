@@ -1,6 +1,6 @@
 const { protect } = require("../middlewares/authMiddleware");
 
-const { addProducts, getAllProducts, getProductById, getProductByCategories, getProductBySubcategories, uploadImage, addPrescription, getAllPrescription, markProductAsFeatured, markProductAsBestSelling } = require("../controllers/ProductController");
+const { addProducts, getAllProducts, getProductById, getProductByCategories, getProductBySubcategories, uploadImage, addPrescription, getAllPrescription, markProductAsFeatured, markProductAsBestSelling, updateStock } = require("../controllers/ProductController");
 const express = require('express');
 const { getAllCategories, addOrUpdateCategory, deleteCategory } = require("../controllers/CategoryController");
 const { upload } = require("../middlewares/multer.middileware");
@@ -24,5 +24,7 @@ router.get('/getAllCategories',getAllCategories);
 router.get('/getProductById/:id',getProductById);
 router.post("/mark-featured", markProductAsFeatured);
 router.post("/mark-best-selling", markProductAsBestSelling);
+router.post("/updateStock", updateStock);
+
     
 module.exports=router;

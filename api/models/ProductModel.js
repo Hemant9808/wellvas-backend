@@ -46,7 +46,7 @@ const ProductSchema = new Schema(
     manufacturer: {
       type: String,
       required: [true, "Manufacturer is required"],
-    },
+  },
     stock: {
       type: Number,
       required: [true, "Stock is required"],
