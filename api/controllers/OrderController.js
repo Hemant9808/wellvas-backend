@@ -147,10 +147,11 @@ const getMyOrders = async (req, res) => {
         select: 'images' // Only populate the images field from Product
       })
       .lean(); // Convert to plain JavaScript objects
-
+ console.log("orders",orders);
     // Map through orders and items to add image URL to each item
     const ordersWithImages = orders.map(order => {
       const itemsWithImages = order.items.map(item => {
+        console.log("orders itms",item);
         // Use the populated product data or fall back to embedded data
         const product = item.productId._id || item.productId;
         const imageUrl = product?.images?.[0]?.url || 'https://via.placeholder.com/80';

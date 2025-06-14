@@ -67,7 +67,7 @@ const getProductByCategories = async (req, res) => {
   try {
     const { category } = req.query;
     console.log(category);
-    
+
     const categoryId = await Category.findOne({ name: category }).select("_id");
     if (!categoryId) {
       return res.status(200).json({ message: "This category doesnt exists." });
@@ -137,7 +137,7 @@ const addProducts = async (req, res) => {
 
     let findCategory = await Category.findOne({ _id: category[0] });
     console.log("findCategory", findCategory);
-      
+
     categoryIds.push(findCategory._id);
     console.log("categoryIds", categoryIds);
 
@@ -169,7 +169,7 @@ const addProducts = async (req, res) => {
 
     let product;
     if (_id) {
-      console.log("product update sucessfully",_id);
+      console.log("product update sucessfully", _id);
       product = await Product.findByIdAndUpdate(
         _id,
         {
@@ -184,20 +184,17 @@ const addProducts = async (req, res) => {
           images,
           discountPrice,
         },
-        { new: true } 
-        
-        
+        { new: true }
+
         //{ new: true }
-        
       );
-      console.log("product found",product);
+      console.log("product found", product);
       res.send({
         success: true,
         message: "product updated successfully",
         product,
       });
       console.log("product update sucessfully");
-
     } else {
       // console.log("product created sucessfully");
 
@@ -248,121 +245,159 @@ const uploadImage = async (req, res) => {
   try {
     const coverImageLocalPath = req.file?.path;
     console.log("coverImageLocalPath", coverImageLocalPath);
-  
+
     if (!coverImageLocalPath) {
-      res.send({message:"coverImageLocalPath not found"})    }
-  
+      res.send({ message: "coverImageLocalPath not found" });
+    }
+
     const coverImage = await uploadOnCloudinary(coverImageLocalPath);
-   
-    if(coverImage==null){return res.send({message:"coverImage is null "})}
+
+    if (coverImage == null) {
+      return res.send({ message: "coverImage is null " });
+    }
     if (!coverImage.url) {
-      return res.send({message:"cover.url not found"})
+      return res.send({ message: "cover.url not found" });
     }
     console.log("coverImage", coverImage);
-    return res.send({coverImage: coverImage.url});
+    return res.send({ coverImage: coverImage.url });
 
     return res.status(200).json(coverImage.url);
   } catch (error) {
-    console.log(error); 
-    res.send(error.message)
+    console.log(error);
+    res.send(error.message);
   }
- 
 };
 
-const addPrescription =async(req,res)=>{
+const addPrescription = async (req, res) => {
   try {
-    const {url} = req.body;
-    console.log("url",url);
-    
-    console.log("req.body.user",req.user);
-    
-   const userId = req.user._id;
-   console.log("userId",userId);
-   
-   const prescription =  new Prescription({
-    userId,
-    url
-   })
-   const response= await prescription.save();
-   console.log("Response",response);
-   
-   res.send(response);
+    const { url } = req.body;
+    console.log("url", url);
+
+    console.log("req.body.user", req.user);
+
+    const userId = req.user._id;
+    console.log("userId", userId);
+
+    const prescription = new Prescription({
+      userId,
+      url,
+    });
+    const response = await prescription.save();
+    console.log("Response", response);
+
+    res.send(response);
   } catch (error) {
-    console.log("error",error);
-    
-    res.send(error.message)
+    console.log("error", error);
+
+    res.send(error.message);
   }
-   
+};
 
-}
+const getAllPrescription = async (req, res) => {
+  console.log("entered");
 
-const getAllPrescription =async(req,res)=>{
-  console.log('entered');
-  
   try {
-    const data = await Prescription.find().populate("userId", "userName _id email");
-    console.log("data",data);
-    
+    const data = await Prescription.find().populate(
+      "userId",
+      "userName _id email"
+    );
+    console.log("data", data);
+
     res.send(data);
-
   } catch (error) {
-    res.send(error.message)
-    console.log(error)
+    res.send(error.message);
+    console.log(error);
   }
-}
+};
 
 const markProductAsFeatured = async (req, res) => {
-  const { productId } = req.body;
+  const { productId, currentStatus } = req.body;
 
   if (!productId) {
     return res.status(400).send({ message: "Product ID is required" });
   }
 
   try {
-    const updatedProduct = await Product.findByIdAndUpdate(
-      productId,
-      { isFeatured: true },
-      { new: true }
-    );
+    let updatedProduct;
+    if (currentStatus === false) {
+      updatedProduct = await Product.findByIdAndUpdate(
+        productId,
+        { isFeatured: true },
+        { new: true }
+      );
+    } else {
+      updatedProduct = await Product.findByIdAndUpdate(
+        productId,
+        { isFeatured: false },
+        { new: true }
+      );
+    }
 
     if (!updatedProduct) {
       return res.status(404).send({ message: "Product not found" });
     }
 
-    res.status(200).send({ message: "Product marked as featured", product: updatedProduct });
+    res
+      .status(200)
+      .send({ message: "Product marked as featured", product: updatedProduct });
   } catch (error) {
     res.status(500).send({ message: "Server error", error: error.message });
   }
 };
 
-
-
 const markProductAsBestSelling = async (req, res) => {
-  const { productId } = req.body;
+  const { productId ,currentStatus} = req.body;
 
   if (!productId) {
     return res.status(400).send({ message: "Product ID is required" });
   }
 
+  //best selling should not be more that one product
+
+  const existingBestSellingProduct = await Product.findOne({
+    isBestSelling: true,
+  });
+
+  if (existingBestSellingProduct && existingBestSellingProduct._id.toString() !== productId) {
+    return res.status(200).send({
+      status: 400,
+      message: "Only one product can be marked as best-selling at a time",
+    });
+  }
+
   try {
-    const updatedProduct = await Product.findByIdAndUpdate(
-      productId,
-      { isBestSelling: true },
-      { new: true }
-    );
+    let updatedProduct;
+    if (currentStatus === false) {
+      updatedProduct = await Product.findByIdAndUpdate(
+        productId,
+        { isBestSelling: true },
+        { new: true }
+      );
+    } else {
+      updatedProduct = await Product.findByIdAndUpdate(
+        productId,
+        { isBestSelling: false },
+        { new: true }
+      );
+    }
 
     if (!updatedProduct) {
       return res.status(404).send({ message: "Product not found" });
     }
 
-    res.status(200).send({ message: "Product marked as best-selling", product: updatedProduct });
+    res
+      .status(200)
+      .send({
+        message: "Product marked as best-selling",
+        product: updatedProduct,
+      });
   } catch (error) {
     res.status(500).send({ message: "Server error", error: error.message });
   }
 };
 
 const updateStock = async (req, res) => {
-  const { id,stock } = req.body;
+  const { id, stock } = req.body;
 
   if (!id) {
     return res.status(400).send({ message: "Product ID is required" });
@@ -379,13 +414,16 @@ const updateStock = async (req, res) => {
       return res.status(404).send({ message: "Product not found" });
     }
 
-    res.status(200).send({ message: "Product marked as best-selling", product: updatedProduct });
+    res
+      .status(200)
+      .send({
+        message: "Product marked as best-selling",
+        product: updatedProduct,
+      });
   } catch (error) {
     res.status(500).send({ message: "Server error", error: error.message });
   }
 };
-
-
 
 module.exports = {
   addProducts,
@@ -399,5 +437,5 @@ module.exports = {
   getAllPrescription,
   markProductAsFeatured,
   markProductAsBestSelling,
-  updateStock
+  updateStock,
 };
