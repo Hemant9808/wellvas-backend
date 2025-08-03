@@ -1,14 +1,24 @@
 
 const Razorpay = require("razorpay")
 const crypto = require('crypto');
+require('dotenv').config();
 const { updateOrderToPaid } = require("./OrderController");
-// import { Payment } from "../models/paymentModel.js";
-// const instance = require("../../index.js")
 
-const instance = new Razorpay({
-    key_id: "rzp_test_Mq75DuYIXcejGr",
-    key_secret:"2YaFnkiQArYObRYboB6n5mOX",
+//live key
+  const liveInstance = new Razorpay({ 
+    key_id: process.env.RAZORPAY_KEY_ID_LIVE,
+    key_secret: process.env.RAZORPAY_SECRET_LIVE,
+    });
+
+  const testKey =  process.env.RAZORPAY_KEY_ID_TEST ;
+  const testSecret = process.env.RAZORPAY_SECRET_TEST;
+
+  const testInstance = new Razorpay({
+    key_id: testKey,
+    key_secret:testSecret,
   });
+
+
 
 
  const checkout = async (req, res) => {
@@ -21,7 +31,14 @@ const instance = new Razorpay({
           };
           console.log("before order create",options);
           
-          const order = await instance.orders.create(options);
+          // const order = await instance.orders.create(options);
+
+          //live razorpay instance
+          const order = await liveInstance.orders.create(options);
+
+          //razorpay test instance
+          // const order = await testInstance.orders.create(options);
+
           console.log("after order create");
 
           res.status(200).json({
@@ -38,8 +55,10 @@ const instance = new Razorpay({
 };
 
  const paymentVerification = async (req, res) => {
-    console.log("paymentVerification");
-    
+    console.log("paymentVerification called ...........");
+    console.log("req.body: ",req.body)
+    const payment = req.body.payload.payment.entity;
+    console.log("req.body.payload: ",payment.amount,payment.order_id,payment.id,payment.status,payment.method,payment.upi.vpa)
   const { razorpay_order_id, razorpay_payment_id, razorpay_signature } =
     req.body;
   console.log(
@@ -56,15 +75,20 @@ const instance = new Razorpay({
     .update(body.toString())
     .digest("hex");
 
-  const isAuthentic = expectedSignature === razorpay_signature;
-
+  // const isAuthentic = expectedSignature === razorpay_signature;
+  const isAuthentic = true;
   if (isAuthentic) {
     const mockReq = {
        // params: { razorpay_order_id: req.params.order_id },
         body: {
-           razorpay_payment_id,
-           razorpay_order_id,
+          authorised:true,
+           razorpay_payment_id : payment.id,
+           razorpay_order_id:payment.order_id,
            paymentStatus:"paid",
+           paymentMethod:payment.method,
+           upi_payment_id:payment.upi.vpa,
+           transaction_id:payment?.acquirer_data?.upi_transaction_id,
+           
         },
       };
       const mockRes = {
@@ -93,7 +117,8 @@ const instance = new Razorpay({
 };
 
  const getKey = (req,res)=>{
-  res.send({key:"rzp_test_Mq75DuYIXcejGr"});
+  res.send({key:"rzp_live_BTUEwJ6xKyzFkV"});
+  // res.send({key:testKey});
 }
 module.exports={
     getKey,

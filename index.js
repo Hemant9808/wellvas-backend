@@ -30,6 +30,8 @@ app.use(cors({ origin: '*' }));
 // });
 // module.exports= instance;
 
+
+
 // routers
 app.use('/auth', authRouter);
 app.use('/product', productRouter);
@@ -55,7 +57,20 @@ app.use('/contact',contactRoutes)
 //   res.status(200).send('Server is awake!');
 // });
 
-app.get('/', (req, res) => res.send('welcome our app'));
+app.get('/', (req, res) =>{
+  const testKey =  process.env.RAZORPAY_KEY_ID_TEST;
+  const testSecret = process.env.RAZORPAY_SECRET_TEST;
+
+  console.log("process.env.RAZORPAY_KEY_ID_TEST: ",process.env.RAZORPAY_KEY_ID_TEST)
+  console.log("process.env.RAZORPAY_SECRET_TEST: ",process.env.RAZORPAY_SECRET_TEST)
+  console.log("process.env.RAZORPAY_KEY_ID_LIVE: ",process.env.RAZORPAY_KEY_ID_LIVE)
+  console.log("process.env.RAZORPAY_SECRET_LIVE: ",process.env.RAZORPAY_SECRET_LIVE)
+  console.log("testKey: ",testKey)
+  console.log("testSecret: ",testSecret)
+
+  console.log("welcome our app");
+   res.send('welcome our app')
+  });
 
 //const CONNECTION_URL = process.env.MONGO_URI;
 const CONNECTION_URL="mongodb+srv://hemant9808:ySEEecsHJArJfzfA@mydb.ovbqzxf.mongodb.net/chatApp";

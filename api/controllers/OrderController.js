@@ -89,14 +89,19 @@ const updateOrderToPaid = async (req, res) => {
   
 
   if (order) {
-    order.orderStatus=req.body.orderStatus || order.orderStatus;
+    // order.orderStatus=req.body.orderStatus || order.orderStatus;
     // order.isPaid = true;
     // order.paidAt = Date.now();
+    order.partial_payment = req.body.amount/100 == order.totalPrice ? 0 : order.partial_payment/100;
+    order.authorised = req.body.authorised || order.authorised;
     order.paymentResult = {
       razorpay_payment_id:req.body.razorpay_payment_id || order.paymentResult.razorpay_payment_id,
       paymentStatus:req.body.paymentStatus || order.paymentResult.paymentStatus,
       paidAt:Date.now(),
-      paymentMethod:req.body.paymentMethod || order.paymentResult.paymentMethod,     
+      paymentMethod:req.body?.paymentMethod || order.paymentResult.paymentMethod,   
+      upi_payment_id:req.body?.upi_payment_id || order.paymentResult.upi_payment_id,
+      transaction_id:req.body?.transaction_id || order.paymentResult.transaction_id,
+
     };
     const updatedOrder = await order.save();
     console.log("updatedOrder",updatedOrder);
@@ -140,7 +145,7 @@ const updateOrderStatus= async (req, res) => {
 
 const getMyOrders = async (req, res) => {
   try {
-    const orders = await Order.find({ user: req.user._id })
+    const orders = await Order.find({ user: req.user._id, authorised:true })
       .populate({
         path: 'items.productId._id',
         model: 'Product',
@@ -192,7 +197,10 @@ const getAllOrders = async (req, res) => {
     const limit = parseInt(req.query.limit) || 10;
     const skip = (page - 1) * limit;
 
-    const orders = await Order.find()
+    //delete all orders where authorised is false
+    await Order.deleteMany({authorised:false});
+
+    const orders = await Order.find({authorised:true})
       .populate('user', 'name email')
       .sort({ createdAt: -1 })
       .skip(skip)
