@@ -182,7 +182,7 @@ const addProducts = async (req, res) => {
           stock,
           brand,
           images,
-          discountPrice,
+          discountPrice : discountPrice || price,
         },
         { new: true }
 

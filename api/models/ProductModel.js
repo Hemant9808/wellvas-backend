@@ -24,11 +24,6 @@ const ProductSchema = new Schema(
       required: [true, "Medicine price is required"],
       min: [0, "Price cannot be negative"],
     },
-    discountedPrice: {
-      type: Number,
-      min: [0, "Discounted price cannot be negative"],
-      default: null, // null means no discount
-    },
     categories: [
       {
         type: mongoose.Schema.Types.ObjectId,
@@ -74,7 +69,13 @@ const ProductSchema = new Schema(
     isBestSelling :{
       type: Boolean,
       default: false, // Default value for isBestSelling
-    }
+    },
+    discountPrice: {
+      type: Number,
+     
+      min: [0, "Discount price cannot be negative"],
+      default: 0,
+    },
   },
   {
     timestamps: true, // Automatically adds `createdAt` and `updatedAt` fields
