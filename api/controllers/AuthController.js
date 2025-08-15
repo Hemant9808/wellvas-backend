@@ -215,7 +215,7 @@ login = async (req, res,next) => {
 
     const user = await User.findOne({ email }).select("username email password firstName lastName phone role");
     if (!user) {
-      return res.send({message:"password is in correct"})
+      return res.status(400).send({status:400,message:"user not found"})
     }
 
     console.log("ddd")
@@ -223,13 +223,13 @@ login = async (req, res,next) => {
     const matchPassword = await bcrypt.compare(password, user.password);
 
     if (!matchPassword) {
-      const emailOptions = {
-        email: user.email,
-        subject: 'Your password reset token (valid for 10 minutes)',
-        message: `froud access`,
-      };
+      // const emailOptions = {
+      //   email: user.email,
+      //   subject: 'Your password reset token (valid for 10 minutes)',
+      //   message: `froud access`,
+      // };
   
-      await sendEmail(emailOptions);
+      // await sendEmail(emailOptions);
       return res.status(400).send({message:"password is incorrect"})
     } 
     console.log('still running')
