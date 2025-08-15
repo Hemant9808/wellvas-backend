@@ -115,8 +115,12 @@ const updateOrderToPaid = async (req, res) => {
     });
 
   } else {
-    res.status(404);
-    throw new Error('Order not found');
+    res.status(200).json({
+      success: true,
+      message: "Order not found",
+    });
+    
+    // throw new Error('Order not found');
   }
 }
 

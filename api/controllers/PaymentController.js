@@ -55,10 +55,10 @@ const { updateOrderToPaid } = require("./OrderController");
 };
 
  const paymentVerification = async (req, res) => {
-    console.log("paymentVerification called ...........");
-    console.log("req.body: ",req.body)
+    // console.log("paymentVerification called ...........");
+    // console.log("req.body: ",req.body)
     const payment = req.body.payload.payment.entity;
-    console.log("req.body.payload: ",payment.amount,payment.order_id,payment.id,payment.status,payment.method,payment.upi.vpa)
+    // console.log("req.body.payload: ",payment.amount,payment.order_id,payment.id,payment.status,payment.method,payment.upi.vpa)
   const { razorpay_order_id, razorpay_payment_id, razorpay_signature } =
     req.body;
   console.log(
@@ -68,16 +68,16 @@ const { updateOrderToPaid } = require("./OrderController");
     razorpay_signature
   );
 
-  const body = razorpay_order_id + "|" + razorpay_payment_id;
+  // const body = razorpay_order_id + "|" + razorpay_payment_id;
 
-  const expectedSignature = crypto
-    .createHmac("sha256","2YaFnkiQArYObRYboB6n5mOX")
-    .update(body.toString())
-    .digest("hex");
+  // const expectedSignature = crypto
+  //   .createHmac("sha256","2YaFnkiQArYObRYboB6n5mOX")
+  //   .update(body.toString())
+  //   .digest("hex");
 
   // const isAuthentic = expectedSignature === razorpay_signature;
-  const isAuthentic = true;
-  if (isAuthentic) {
+  
+  try{
     const mockReq = {
        // params: { razorpay_order_id: req.params.order_id },
         body: {
@@ -110,14 +110,11 @@ const { updateOrderToPaid } = require("./OrderController");
  
     });
     
-    // res.redirect(
-    //   // `http://localhost:3000/paymentsuccess?reference=${razorpay_payment_id}`
-    //         `http://localhost:3000/`
-
-    // );
-  } else {
-    res.status(400).json({
+  
+  } catch (error) {
+    res.status(200).json({
       success: false,
+      message: error.message,
     });
   }
 };
