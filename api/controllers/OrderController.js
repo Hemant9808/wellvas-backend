@@ -107,7 +107,13 @@ const updateOrderToPaid = async (req, res) => {
     console.log("updatedOrder",updatedOrder);
 
     
-    res.status(200).json(updatedOrder);
+    // res.status(200).json(updatedOrder);
+     res.status(200).json({
+      success: true,
+      message: "webhook processed successfully",
+ 
+    });
+
   } else {
     res.status(404);
     throw new Error('Order not found');

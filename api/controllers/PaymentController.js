@@ -104,7 +104,7 @@ const { updateOrderToPaid } = require("./OrderController");
     await updateOrderToPaid(mockReq, mockRes);
     console.log("updateOrderToPaid called");
 
-    res.status(200).json({
+    return res.status(200).json({
       success: true,
       message: "webhook processed successfully",
  
