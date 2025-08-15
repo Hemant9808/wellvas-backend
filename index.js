@@ -2,6 +2,7 @@ const bodyParser = require('body-parser');
 const cors = require('cors');
 const express = require('express');
 const mongoose = require('mongoose');
+const session = require('express-session');
 const authRouter = require('./api/routes/AuthRouter');
 const productRouter = require('./api/routes/ProductRouter');
 const CartRouter = require('./api/routes/CartRouter');
@@ -14,6 +15,7 @@ const contactRoutes = require('./api/routes/ContactRoutes');
 const Razorpay = require("razorpay")
 
 const cron = require('node-cron');
+const { cleanupExpiredOTPs } = require('./api/utils/otpUtils');
 
 require('dotenv').config();
 
@@ -23,6 +25,18 @@ app.use(bodyParser.json({ limit: '30mb', extended: true }));
 app.use(bodyParser.urlencoded({ limit: '30mb', extended: true }));
 // app.use(cors()); 
 app.use(cors({ origin: '*' }));
+
+// Session middleware for OTP functionality
+app.use(session({
+  secret: process.env.SESSION_SECRET || 'your-secret-key',
+  resave: false,
+  saveUninitialized: false,
+  cookie: {
+    secure: process.env.NODE_ENV === 'production', // Use secure cookies in production
+    httpOnly: true,
+    maxAge: 10 * 60 * 1000 // 10 minutes (same as OTP expiry)
+  }
+}));
 
 //  const instance = new Razorpay({
 //   key_id: "rzp_test_Mq75DuYIXcejGr",
@@ -42,6 +56,18 @@ app.use('/payment',PaymentRoutes);
 app.use('/blogs',BlogRoutes)
 app.use('/contact',contactRoutes)
 
+
+// Clean up expired OTPs every 5 minutes
+cron.schedule('*/5 * * * *', async () => {
+  try {
+    const cleanedCount = await cleanupExpiredOTPs();
+    if (cleanedCount > 0) {
+      console.log(`Cleaned up ${cleanedCount} expired OTPs`);
+    }
+  } catch (error) {
+    console.error('Error in OTP cleanup cron job:', error);
+  }
+});
 
 // cron.schedule('* * * * *', () => {
 //   console.log('Running task every minute');
