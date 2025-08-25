@@ -44,6 +44,11 @@ const userSchema = new Schema(
     passwordChangedAt: Date,
     passwordResetToken: String,
     passwordResetExpires: Date,
+    otp: {
+      type: String,
+      
+    },
+    otpExpires: Date,
     isEmailVerified: {
       type: Boolean,
       default: false,
