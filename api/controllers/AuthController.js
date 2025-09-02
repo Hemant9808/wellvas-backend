@@ -37,8 +37,8 @@ const generateSignupOTP = async (req, res, next) => {
     if (existingUser) {
 
       if(existingUser.isEmailVerified){
-        const updatedUser = await User.findOneAndUpdate({ email },{ isEmailVerified:false, emailVerifiedAt:null },{new:true});
-        return res.status(400).json({ message: "User with this email already exists" ,existingUser,updatedUser});
+        // const updatedUser = await User.findOneAndUpdate({ email },{ isEmailVerified:false, emailVerifiedAt:null },{new:true});
+        return res.status(400).json({ message: "User with this email already exists" ,existingUser});
       }
       // return res.status(400).json({ message: "User with this email already exists" });
     }
@@ -217,7 +217,6 @@ login = async (req, res,next) => {
       user,
       isAdmin: user.role === 'admin'
     });
-
   } catch (error) {
     console.log(error);
     res.send({ message: error });
@@ -620,5 +619,6 @@ module.exports = {
   generateSignupOTP,
   verifySignupOTP,
   resendSignupOTP,
-  deleteAccount
+  deleteAccount,
+  getUserDetails
 };

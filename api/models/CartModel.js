@@ -13,11 +13,14 @@ const CartSchema = new mongoose.Schema({
       }, 
       price: Number, 
       quantity: Number, 
+      discountPrice: Number,
       
     },
   ],
   totalItems: Number, 
   totalPrice: Number,
+  discountPrice: Number,
+  totalDiscountPrice: Number,
   appliedCoupon: {
     couponCode: String, 
     discountPercentage: Number, 

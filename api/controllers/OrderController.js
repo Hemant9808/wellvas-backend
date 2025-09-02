@@ -5,7 +5,7 @@ const createOrder = async(req, res) => {
     
     // console.log("req.user",req.user);
     try {
-      const { items, shippingAddress, paymentMethod, taxPrice, shippingPrice, totalPrice,razorpay_order_id } = req.body;
+      const { items, shippingAddress, paymentMethod, taxPrice, shippingPrice, totalPrice,razorpay_order_id,totalDiscountPrice } = req.body;
       console.log("entered",razorpay_order_id);
       if (items && items.length === 0) {
         res.status(400);
@@ -22,7 +22,8 @@ const createOrder = async(req, res) => {
         taxPrice,
         shippingPrice,
         totalPrice,
-        razorpay_order_id
+        razorpay_order_id,
+        totalDiscountPrice : totalDiscountPrice ? totalDiscountPrice : totalPrice,
       });
 
 

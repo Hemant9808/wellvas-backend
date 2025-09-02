@@ -22,6 +22,7 @@ const productSchema = new Schema(
       type: Number,
       required: true,
     },
+
     brand: {
       type: String,
       required: false,
@@ -116,6 +117,9 @@ const orderSchema = new Schema(
       required: true,
       default: 0.0,
     },
+    totalDiscountPrice: {
+      type: Number  
+      },
     // isPaid: {
     //   type: Boolean,
     //   required: true,

@@ -67,6 +67,11 @@ const getProductByCategories = async (req, res) => {
   try {
     const { category } = req.query;
     console.log(category);
+    //category is "" return all products
+    if (category === "") {
+      const products = await Product.find();
+      return res.status(200).json(products).select("_id");
+    }
 
     const categoryId = await Category.findOne({ name: category }).select("_id");
     if (!categoryId) {

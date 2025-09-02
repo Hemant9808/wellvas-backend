@@ -5,22 +5,24 @@ const calculateCartTotal = (items) => {
 
   let totalItems = 0;
   let totalPrice = 0;
+  let totalDiscountPrice = 0;
 
   items.forEach((item) => {
     totalItems = totalItems+item.quantity;
     totalPrice = totalPrice+item.price * item.quantity;
+    totalDiscountPrice = totalDiscountPrice+item.discountPrice * item.quantity;
     // console.log("inside funtion", item.quantity, item.price);
   });
 
-  return { totalItems, totalPrice };
+  return { totalItems, totalPrice, totalDiscountPrice };
 };
 
 const addToCart = async (req, res) => {
   // console.log("entered");
 
   try {
-    let { productId, quantity, price } = req.body;
-    // console.log(productId, quantity, price);
+    let { productId, quantity, price,discountPrice } = req.body;
+    console.log(productId, quantity, price,discountPrice);
     
     const userId = req.user._id;
     // console.log("userId", req.user._id);
@@ -29,10 +31,10 @@ const addToCart = async (req, res) => {
       "items.productId",
       "price name images brand"
     );   
-    //  console.log("cart found or not");
+     console.log("cart found or not");
 
     if (cart) {
-      // console.log("cart found",cart);
+      console.log("cart found",cart);
 
       const existingItemIndex = cart.items.findIndex((item) =>
         item.productId?._id?.equals(productId)
@@ -40,17 +42,18 @@ const addToCart = async (req, res) => {
       if (existingItemIndex > -1) {
         cart.items[existingItemIndex].quantity = quantity;
       } else {
-        // console.log("pushing items", productId, price, quantity);
+        console.log("pushing items", productId, price, quantity);
 
         cart.items.push({
           productId,
           price,
           quantity,
+          discountPrice,
         });
-        // console.log("new cart after item pushed", cart);
+        console.log("new cart after item pushed", cart);
       }
     } else {
-      // console.log("cart not found");
+      console.log("cart not found");
 
       cart = new Cart({
         userId,
@@ -59,20 +62,22 @@ const addToCart = async (req, res) => {
             productId,
             price,
             quantity,
+            discountPrice,
           },
         ],
       });
-      // console.log("new cart", cart);
+      console.log("new cart", cart);
     }
     // console.log("calculete");
 
-    // console.log(cart.items);
+    // console.log("totalDiscountPrice",totalDiscountPrice);
 
-    const { totalItems, totalPrice } = calculateCartTotal(cart.items);
-    // console.log("kfmskf", totalItems, totalPrice);
+    const { totalItems, totalPrice, totalDiscountPrice } = calculateCartTotal(cart.items);
+    console.log("kfmskf", totalItems, totalPrice,totalDiscountPrice);
 
     cart.totalItems = totalItems;
     cart.totalPrice = totalPrice;
+    cart.totalDiscountPrice = totalDiscountPrice;
     // console.log("update cart", cart);
 
     await cart.save();
@@ -122,9 +127,10 @@ removeItemFromCart = async (req, res) => {
       return res.status(200).json({ message: "Cart is empty now." });
     }
 
-    const { totalItems, totalPrice } = calculateCartTotal(cart.items);
+    const { totalItems, totalPrice, totalDiscountPrice } = calculateCartTotal(cart.items);
     cart.totalItems = totalItems;
     cart.totalPrice = totalPrice;
+    cart.totalDiscountPrice = totalDiscountPrice;
 
     await cart.save();
     res.status(200).json(cart);
