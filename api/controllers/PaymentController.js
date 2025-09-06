@@ -34,10 +34,10 @@ const { updateOrderToPaid } = require("./OrderController");
           // const order = await instance.orders.create(options);
 
           //live razorpay instance
-          const order = await liveInstance.orders.create(options);
+          // const order = await liveInstance.orders.create(options);
 
           //razorpay test instance
-          // const order = await testInstance.orders.create(options);
+          const order = await testInstance.orders.create(options);
 
           console.log("after order create");
 
@@ -98,11 +98,23 @@ const { updateOrderToPaid } = require("./OrderController");
         }),
         
       };
-    
+
+      
     console.log("mockReq",mockReq);
     
     await updateOrderToPaid(mockReq, mockRes);
     console.log("updateOrderToPaid called");
+
+    //send email to user
+      
+
+
+
+
+
+
+
+
 
     return res.status(200).json({
       success: true,
@@ -120,12 +132,12 @@ const { updateOrderToPaid } = require("./OrderController");
 };
 
  const getKey = (req,res)=>{
-  res.send({key:"rzp_live_BTUEwJ6xKyzFkV"});
-  // res.send({key:testKey});
+  // res.send({key:"rzp_live_BTUEwJ6xKyzFkV"});
+  res.send({key:testKey});
 }
+
 module.exports={
     getKey,
     paymentVerification,
     checkout
-
 }

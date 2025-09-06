@@ -1,5 +1,7 @@
 const Cart = require('../models/CartModel');
 const Order = require('../models/OrderModel');
+const User = require('../models/UserModel');
+const { sendOrderConfirmationEmail } = require('../utils/nodemailer');
 
 const createOrder = async(req, res) => {
     
@@ -85,7 +87,7 @@ const updateOrderToPaid = async (req, res) => {
   const {razorpay_order_id}= req.body;
   console.log("updateOrderToPaid", req.body);
   
-  const order = await Order.findOne({razorpay_order_id:razorpay_order_id});
+  const order = await Order.findOne({razorpay_order_id:razorpay_order_id}).populate('user', 'firstName lastName email');
   console.log("order found",order);
   
 
@@ -107,6 +109,23 @@ const updateOrderToPaid = async (req, res) => {
     const updatedOrder = await order.save();
     console.log("updatedOrder",updatedOrder);
 
+    // Send confirmation email to user
+    try {
+      const userName = `${order.user.firstName} ${order.user.lastName}`;
+      const orderDetails = {
+        razorpay_order_id: updatedOrder.razorpay_order_id,
+        razorpay_payment_id: updatedOrder.paymentResult.razorpay_payment_id,
+        totalPrice: updatedOrder.totalPrice,
+        paymentMethod: updatedOrder.paymentResult.paymentMethod,
+        createdAt: updatedOrder.createdAt
+      };
+      
+      await sendOrderConfirmationEmail(order.user.email, userName, orderDetails);
+      console.log("Order confirmation email sent successfully");
+    } catch (emailError) {
+      console.error("Error sending order confirmation email:", emailError);
+      // Don't fail the order update if email fails
+    }
     
     // res.status(200).json(updatedOrder);
      res.status(200).json({

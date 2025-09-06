@@ -11,10 +11,10 @@ const sendEmail = async (options) => {
     port: 465,
     secure: true, // or any other email service provider
     auth: {
-        // user: "hemant@adirayglobal.com",
-        // pass: "ogmnatcklinhjoyl",
-        user: "kumarhemantk64@gmail.com",
-        pass: "sikhwhemlxlexvkw"
+        user: "wellvas07@gmail.com",
+        pass: "ctwkqlsdvsnbpogl",
+        // user: "kumarhemantk64@gmail.com",
+        // pass: "sikhwhemlxlexvkw"
     },
     tls: {
       rejectUnauthorized: false
@@ -77,4 +77,79 @@ const sendOTPEmail = async (email, otp, purpose = 'signup') => {
   });
 };
 
-module.exports = { sendEmail, sendOTPEmail };
+// Function to send order confirmation email
+const sendOrderConfirmationEmail = async (userEmail, userName, orderDetails) => {
+  const subject = 'Order Confirmation - Wellvas';
+  
+  const html = `
+    <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; background-color: #f9f9f9;">
+      <div style="background-color: #ffffff; padding: 30px; border-radius: 10px; box-shadow: 0 2px 10px rgba(0,0,0,0.1);">
+        <div style="text-align: center; margin-bottom: 30px;">
+          <h2 style="color: #333; margin: 0;">Wellvas</h2>
+          <p style="color: #666; margin: 10px 0;">Order Confirmation</p>
+        </div>
+        
+        <div style="background-color: #f8f9fa; padding: 20px; border-radius: 8px; margin: 20px 0;">
+          <h3 style="color: #28a745; margin: 0 0 15px 0;">✅ Order Successfully Received!</h3>
+          <p style="color: #333; margin: 0; font-size: 16px;">
+            Dear ${userName},
+          </p>
+          <p style="color: #666; line-height: 1.6; margin: 15px 0;">
+            Thank you for your order! We have successfully received your payment and your order is now being processed.
+          </p>
+        </div>
+        
+        <div style="background-color: #ffffff; border: 1px solid #e9ecef; border-radius: 8px; padding: 20px; margin: 20px 0;">
+          <h4 style="color: #333; margin: 0 0 15px 0;">Order Details</h4>
+          <div style="display: flex; justify-content: space-between; margin: 8px 0;">
+            <span style="color: #666;">Order ID:</span>
+            <span style="color: #333; font-weight: bold;">${orderDetails.razorpay_order_id}</span>
+          </div>
+          <div style="display: flex; justify-content: space-between; margin: 8px 0;">
+            <span style="color: #666;">Payment ID:</span>
+            <span style="color: #333; font-weight: bold;">${orderDetails.razorpay_payment_id}</span>
+          </div>
+          <div style="display: flex; justify-content: space-between; margin: 8px 0;">
+            <span style="color: #666;">Total Amount:</span>
+            <span style="color: #333; font-weight: bold;">₹${orderDetails.totalPrice}</span>
+          </div>
+          <div style="display: flex; justify-content: space-between; margin: 8px 0;">
+            <span style="color: #666;">Payment Method:</span>
+            <span style="color: #333; font-weight: bold;">${orderDetails.paymentMethod.toUpperCase()}</span>
+          </div>
+          <div style="display: flex; justify-content: space-between; margin: 8px 0;">
+            <span style="color: #666;">Order Date:</span>
+            <span style="color: #333; font-weight: bold;">${new Date(orderDetails.createdAt).toLocaleDateString('en-IN')}</span>
+          </div>
+        </div>
+        
+        <div style="background-color: #e3f2fd; padding: 20px; border-radius: 8px; margin: 20px 0;">
+          <h4 style="color: #1976d2; margin: 0 0 15px 0;">What's Next?</h4>
+          <ul style="color: #666; line-height: 1.6; margin: 0; padding-left: 20px;">
+            <li>Your order is being prepared for shipment</li>
+            <li>You will receive a tracking number once your order is dispatched</li>
+            <li>Expected delivery time: 3-5 business days</li>
+            <li>You can track your order status in your account dashboard</li>
+          </ul>
+        </div>
+        
+        <div style="text-align: center; margin-top: 30px; padding-top: 20px; border-top: 1px solid #eee;">
+          <p style="color: #999; font-size: 14px; margin: 0;">
+            If you have any questions about your order, please contact our customer support.
+          </p>
+          <p style="color: #999; font-size: 14px; margin: 10px 0 0 0;">
+            Thank you for choosing Wellvas!
+          </p>
+        </div>
+      </div>
+    </div>
+  `;
+
+  await sendEmail({
+    email: userEmail,
+    subject,
+    html
+  });
+};
+
+module.exports = { sendEmail, sendOTPEmail, sendOrderConfirmationEmail };
