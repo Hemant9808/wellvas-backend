@@ -4,19 +4,29 @@ const crypto = require('crypto');
 require('dotenv').config();
 const { updateOrderToPaid } = require("./OrderController");
 
-//live key
-  const liveInstance = new Razorpay({ 
-    key_id: process.env.RAZORPAY_KEY_ID_LIVE,
-    key_secret: process.env.RAZORPAY_SECRET_LIVE,
-    });
-
-  const testKey =  process.env.RAZORPAY_KEY_ID_TEST ;
+// Helper function to get Razorpay instances
+const getRazorpayInstances = () => {
+  const testKey = process.env.RAZORPAY_KEY_ID_TEST;
   const testSecret = process.env.RAZORPAY_SECRET_TEST;
+  const liveKey = process.env.RAZORPAY_KEY_ID_LIVE;
+  const liveSecret = process.env.RAZORPAY_SECRET_LIVE;
+
+  if (!testKey || !testSecret) {
+    throw new Error('Razorpay test credentials are not configured. Please set RAZORPAY_KEY_ID_TEST and RAZORPAY_SECRET_TEST environment variables.');
+  }
 
   const testInstance = new Razorpay({
     key_id: testKey,
-    key_secret:testSecret,
+    key_secret: testSecret,
   });
+
+  const liveInstance = new Razorpay({ 
+    key_id: liveKey,
+    key_secret: liveSecret,
+  });
+
+  return { testInstance, liveInstance, testKey, testSecret };
+};
 
 
 
@@ -24,6 +34,8 @@ const { updateOrderToPaid } = require("./OrderController");
  const checkout = async (req, res) => {
     try {
       console.log(req.body);
+      
+      const { testInstance } = getRazorpayInstances();
       
         const options = {
             amount: Number(req.body.amount * 100),
@@ -34,10 +46,10 @@ const { updateOrderToPaid } = require("./OrderController");
           // const order = await instance.orders.create(options);
 
           //live razorpay instance
-          // const order = await liveInstance.orders.create(options);
+          const order = await liveInstance.orders.create(options);
 
           //razorpay test instance
-          const order = await testInstance.orders.create(options);
+          // const order = await testInstance.orders.create(options);
 
           console.log("after order create");
 
@@ -48,7 +60,7 @@ const { updateOrderToPaid } = require("./OrderController");
           });
           
     } catch (error) {
-      console.log("something wen wrong");     
+      console.log("something went wrong", error.message);     
         res.status(501).send({message:error.message}) 
     }
  
@@ -132,8 +144,13 @@ const { updateOrderToPaid } = require("./OrderController");
 };
 
  const getKey = (req,res)=>{
-  // res.send({key:"rzp_live_BTUEwJ6xKyzFkV"});
-  res.send({key:testKey});
+  try {
+    // const { testKey } = getRazorpayInstances();
+    res.send({key:"rzp_live_BTUEwJ6xKyzFkV"});
+    res.send({key:testKey});
+  } catch (error) {
+    res.status(500).send({message: error.message});
+  }
 }
 
 module.exports={
