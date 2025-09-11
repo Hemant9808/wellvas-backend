@@ -40,3 +40,4 @@ if (allPresent) {
     console.log(`   - ${envVar}`);
   });
 }
+

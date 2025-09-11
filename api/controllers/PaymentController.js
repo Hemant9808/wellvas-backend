@@ -35,7 +35,7 @@ const getRazorpayInstances = () => {
     try {
       console.log(req.body);
       
-      const { testInstance } = getRazorpayInstances();
+      const { testInstance, liveInstance } = getRazorpayInstances();
       
         const options = {
             amount: Number(req.body.amount * 100),
