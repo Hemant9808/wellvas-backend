@@ -112,15 +112,15 @@ removeItemFromCart = async (req, res) => {
   
  
   try {
-    const cart = await Cart.findOne({ userId }).populate(
-      "items.productId",
-      "price name images brand"
-    );    if (!cart) {
+    const cart = await Cart.findOne({ userId }) 
+    if (!cart) {
       return res.status(404).json({ error: "Cart not found." });
     }
-//  console.log("cart",cart);
+
+    console.log("cart found...........................................................",cart);
  
-    cart.items = cart.items.filter((item) => !item.productId?._id?.equals(productId));
+ 
+    cart.items = cart.items.filter((item) => !item.productId.equals(productId));
     
     if (cart.items.length === 0) {
       await Cart.deleteOne({ userId });
@@ -134,6 +134,7 @@ removeItemFromCart = async (req, res) => {
 
     await cart.save();
     res.status(200).json(cart);
+
   } catch (error) {
     res.status(500).json({ message:error.message});
   }
