@@ -7,25 +7,26 @@ const createOrder = async(req, res) => {
     
     // console.log("req.user",req.user);
     try {
-      const { items, shippingAddress, paymentMethod, taxPrice, shippingPrice, totalPrice,razorpay_order_id,totalDiscountPrice } = req.body;
+      const { items, shippingAddress, paymentMethod, taxPrice, shippingPrice, totalPrice,razorpay_order_id,totalDiscountPrice, authorised } = req.body;
       console.log("entered",razorpay_order_id);
       if (items && items.length === 0) {
         res.status(400);
         throw new Error('No order items');
   
-        return;
+        // return;
       }
     
       const order = new Order({
         user: req.user._id,
         items,
         shippingAddress,
-        paymentMethod,
+        paymentMethod : paymentMethod || "upi",
         taxPrice,
         shippingPrice,
         totalPrice,
         razorpay_order_id,
         totalDiscountPrice : totalDiscountPrice ? totalDiscountPrice : totalPrice,
+        authorised : authorised || false,
       });
 
 
