@@ -24,7 +24,7 @@ const createOrder = async(req, res) => {
         taxPrice,
         shippingPrice,
         totalPrice,
-        razorpay_order_id,
+        razorpay_order_id : razorpay_order_id || "N/A",
         totalDiscountPrice : totalDiscountPrice ? totalDiscountPrice : totalPrice,
         authorised : authorised || false,
       });
