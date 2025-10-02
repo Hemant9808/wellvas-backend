@@ -68,7 +68,7 @@ const createOrder = async(req, res) => {
 const getOrderById = async (req, res) => {
   try {
     const order = await Order.findById(req.params.id)
-      .populate('user', 'name email')
+      .populate('user', 'name email firstName lastName phone')
       .populate('items.productId', 'name price brand');
 
     if (!order) {
@@ -232,7 +232,7 @@ const getAllOrders = async (req, res) => {
     await Order.deleteMany({authorised:false});
 
     const orders = await Order.find({authorised:true})
-      .populate('user', 'name email')
+      .populate('user', 'name email firstName lastName phone')
       .sort({ createdAt: -1 })
       .skip(skip)
       .limit(limit);
