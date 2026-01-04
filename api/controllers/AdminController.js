@@ -24,7 +24,7 @@ const adminLogin = async (req, res, next) => {
 
     // Find user and explicitly select admin role
     const admin = await User.findOne({ email }).select('+password +role');
-    
+
     // Check if user exists and is an admin
     if (!admin || admin.role !== 'admin') {
       return res.status(401).json({
@@ -35,7 +35,7 @@ const adminLogin = async (req, res, next) => {
 
     // Verify password
     const isPasswordValid = await bcrypt.compare(password, admin.password);
-    console.log("isPasswordValid", isPasswordValid,password, admin.password);
+    console.log("isPasswordValid", isPasswordValid, password, admin.password);
     if (!isPasswordValid) {
       return res.status(401).json({
         status: 'error',

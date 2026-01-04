@@ -16,7 +16,7 @@ const signToken = (id) => {
   // if (!key) {
   //   throw new AppError('SECRET_KEY is not defined in the environment variables.', 500);    }
   const token = jwt.sign({ id }, process.env.SECRET_KEY, {
-   // expiresIn: 2000,
+    // expiresIn: 2000,
   });
   return token;
 
@@ -26,7 +26,7 @@ const signToken = (id) => {
 const generateSignupOTP = async (req, res, next) => {
   try {
     const { email, firstName, lastName, userName, phone, password } = req.body;
-    
+
     if (!email || !firstName || !lastName || !userName || !phone || !password) {
       return res.status(400).json({ message: "All fields are required" });
     }
@@ -36,17 +36,17 @@ const generateSignupOTP = async (req, res, next) => {
     const existingUser = await User.findOne({ email });
     if (existingUser) {
 
-      if(existingUser.isEmailVerified){
+      if (existingUser.isEmailVerified) {
         // const updatedUser = await User.findOneAndUpdate({ email },{ isEmailVerified:false, emailVerifiedAt:null },{new:true});
-        return res.status(400).json({ message: "User with this email already exists" ,existingUser});
+        return res.status(400).json({ message: "User with this email already exists", existingUser });
       }
       // return res.status(400).json({ message: "User with this email already exists" });
     }
-    
+
     const salt = await bcrypt.genSalt();
     const hashPassword = await bcrypt.hash(password, salt);
 
-    if(!existingUser){
+    if (!existingUser) {
       const newUser = new User({
         email,
         firstName,
@@ -61,8 +61,8 @@ const generateSignupOTP = async (req, res, next) => {
     // Check rate limit (max 5 attempts per hour)
     const canSendOTP = await checkOTPRateLimit(email, 'signup', 5, 60 * 60 * 1000);
     if (!canSendOTP) {
-      return res.status(429).json({ 
-        message: "Too many OTP attempts. Please wait for 1 hour before requesting another OTP." 
+      return res.status(429).json({
+        message: "Too many OTP attempts. Please wait for 1 hour before requesting another OTP."
       });
     }
 
@@ -70,8 +70,8 @@ const generateSignupOTP = async (req, res, next) => {
 
     // Generate 6-digit OTP using utility function
     const otp = generateOTP();
-    console.log("OTP after generating",otp);
-    
+    console.log("OTP after generating", otp);
+
     // Set expiration time (10 minutes from now)
     const expiresAt = new Date(Date.now() + 10 * 60 * 1000);
 
@@ -86,13 +86,13 @@ const generateSignupOTP = async (req, res, next) => {
     console.log("otp saved to database");
 
     // Store user data temporarily (you could use Redis for better performance)
-   
+
 
     // Send OTP email
     await sendOTPEmail(email, otp, 'signup');
     console.log("OTP sent to your email. Please check and verify.");
 
-    res.status(200).json({ 
+    res.status(200).json({
       message: "OTP sent to your email. Please check and verify.",
       email: email
     });
@@ -109,28 +109,28 @@ const verifySignupOTP = async (req, res, next) => {
 
     const { email, otp } = req.body;
 
-    if(!email || !otp){
-      return res.status(402).json({message:"enter all the fields"});
+    if (!email || !otp) {
+      return res.status(402).json({ message: "enter all the fields" });
     }
 
     const existingOTP = await OTP.findOne({ email, otp });
-    
-    if(!existingOTP){
-      return res.status(402).json({message:"invalid otp"});
+
+    if (!existingOTP) {
+      return res.status(402).json({ message: "invalid otp" });
     }
 
     const checkOTP = await OTP.findOne({ email, otp, expiresAt: { $gt: Date.now() } });
-    if(!checkOTP){
-      return res.status(402).json({message:"otp expired"});
+    if (!checkOTP) {
+      return res.status(402).json({ message: "otp expired" });
     }
 
-    const user = await User.findOneAndUpdate({ email },{ isEmailVerified:true, emailVerifiedAt:new Date() },{new:true});
+    const user = await User.findOneAndUpdate({ email }, { isEmailVerified: true, emailVerifiedAt: new Date() }, { new: true });
 
-    if(!user){
-      return res.status(402).json({message:"user not found"});
+    if (!user) {
+      return res.status(402).json({ message: "user not found" });
     }
 
-    return res.status(200).send({success:true,message: "otp verified successfully",user:user,token:signToken(user.id)})
+    return res.status(200).send({ success: true, message: "otp verified successfully", user: user, token: signToken(user.id) })
 
 
   } catch (error) {
@@ -143,13 +143,13 @@ const verifySignupOTP = async (req, res, next) => {
 const signup = async (req, res, next) => {
   console.log("----------------------request");
   console.log(req.body.email);
-  
+
   try {
     const { firstName, lastName, userName, email, phone, password } = req.body;
-    console.log("firstName",firstName);
-    
-    if(!firstName || !lastName|| !userName ||  !email || !phone || !password){
-      return res.status(402).json({message:"enter all the fields"});
+    console.log("firstName", firstName);
+
+    if (!firstName || !lastName || !userName || !email || !phone || !password) {
+      return res.status(402).json({ message: "enter all the fields" });
     }
 
     const salt = await bcrypt.genSalt();
@@ -165,12 +165,12 @@ const signup = async (req, res, next) => {
     });
 
     const saveUser = await newUser.save();
-    
+
     saveUser.password = undefined;
     const token = signToken(saveUser.id);
     return res.status(200).send({
       token,
-      user:saveUser
+      user: saveUser
     });
   } catch (error) {
     console.log(error);
@@ -178,22 +178,22 @@ const signup = async (req, res, next) => {
   }
 };
 
-login = async (req, res,next) => {
+login = async (req, res, next) => {
   try {
     const { email, password } = req.body;
-    console.log( email, password);
+    console.log(email, password);
 
     if (!email || !password) {
-      return res.status(402).send({ message: "all fields are required"});
+      return res.status(402).send({ message: "all fields are required" });
     }
 
     const user = await User.findOne({ email }).select("username email password firstName lastName phone role");
     if (!user) {
-      return res.status(400).send({status:400,message:"user not found"})
+      return res.status(400).send({ status: 400, message: "user not found" })
     }
 
     console.log("ddd")
-    console.log(password,user, user.password)
+    console.log(password, user, user.password)
     const matchPassword = await bcrypt.compare(password, user.password);
 
     if (!matchPassword) {
@@ -202,16 +202,16 @@ login = async (req, res,next) => {
       //   subject: 'Your password reset token (valid for 10 minutes)',
       //   message: `froud access`,
       // };
-  
+
       // await sendEmail(emailOptions);
-      return res.status(400).send({message:"password is incorrect"})
-    } 
+      return res.status(400).send({ message: "password is incorrect" })
+    }
     console.log('still running')
     const token = signToken(user.id);
 
     console.log(token);
     user.password = undefined;
-    
+
     return res.status(200).send({
       token,
       user,
@@ -224,58 +224,105 @@ login = async (req, res,next) => {
 };
 
 
-forgotPassword = async (req, res, next) => {
+const forgotPassword = async (req, res, next) => {
   try {
     const { email } = req.body;
 
-    var user = await User.findOne({ email });
+    if (!email) {
+      return res.status(400).json({ message: 'Email is required' });
+    }
+
+    const user = await User.findOne({ email });
 
     if (!user) {
       return next(new AppError('No user found with that email', 404));
     }
 
     const resetToken = user.createPasswordResetToken();
-   console.log("resetToken",resetToken);
-   
+    console.log("resetToken", resetToken);
+    console.log("💾 Token being saved to DB:", user.passwordResetToken);
+    console.log("Expires at:", user.passwordResetExpires);
+
     await user.save({ validateBeforeSave: false });
 
+    // Create reset URL - Points to frontend with token as query parameter
+    const frontendURL = process.env.FRONTEND_URL || 'http://localhost:5173';
+    const resetURL = `${frontendURL}/reset-password?token=${resetToken}`;
+    console.log("resetURL", resetURL);
 
-    const resetURL = `${req.protocol}://${req.get('host')}/resetPassword/${resetToken}`;
-     console.log("resetURL",resetURL);
-     
     const emailOptions = {
       email: user.email,
-      subject: '',
-      message: ``,
+      subject: 'Password Reset Request - Wellvas',
+      message: `
+        <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; background-color: #f4f4f4;">
+          <div style="background-color: white; padding: 30px; border-radius: 10px; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
+            <h2 style="color: #2c3e50; margin-bottom: 20px;">Password Reset Request</h2>
+            <p style="color: #555; line-height: 1.6;">Hi ${user.firstName},</p>
+            <p style="color: #555; line-height: 1.6;">We received a request to reset your password for your Wellvas account.</p>
+            <p style="color: #555; line-height: 1.6;">Click the button below to reset your password:</p>
+            <div style="text-align: center; margin: 30px 0;">
+              <a href="${resetURL}" style="background-color: #3498db; color: white; padding: 12px 30px; text-decoration: none; border-radius: 5px; display: inline-block;">Reset Password</a>
+            </div>
+            <p style="color: #555; line-height: 1.6; font-size: 14px;">Or copy and paste this link into your browser:</p>
+            <p style="color: #3498db; word-break: break-all; font-size: 12px;">${resetURL}</p>
+            <p style="color: #e74c3c; margin-top: 20px; font-size: 14px;">⚠️ This link will expire in 10 minutes.</p>
+            <p style="color: #999; font-size: 12px; margin-top: 20px; border-top: 1px solid #eee; padding-top: 20px;">
+              If you didn't request a password reset, please ignore this email or contact support if you have concerns.
+            </p>
+            <p style="color: #555; margin-top: 20px;">Best regards,<br><strong>Wellvas Team</strong></p>
+          </div>
+        </div>
+      `,
     };
 
-    await sendEmail();
+    await sendEmail(emailOptions);
 
-    res.status(200).send({ message: 'Token sent to email!' });
+    res.status(200).send({
+      message: 'Password reset link sent to your email!',
+      success: true
+    });
   } catch (error) {
-    // user.passwordResetToken = undefined;
-    // user.passwordResetExpires = undefined;
-    // await user.save({ validateBeforeSave: false });
- console.log("error in email sendign",error)
+    // Cleanup on error
+    if (user) {
+      user.passwordResetToken = undefined;
+      user.passwordResetExpires = undefined;
+      await user.save({ validateBeforeSave: false });
+    }
+    console.log("Error in sending password reset email:", error);
     return next(new AppError('Error sending the email. Try again later!', 500));
   }
 };
 
 
 
-resetPassword = async (req, res, next) => {
+const resetPassword = async (req, res, next) => {
   try {
+    console.log('🔍 Reset Password Request:');
+    console.log('Received token from URL:', req.params.token);
+
     const hashedToken = crypto
       .createHash('sha256')
       .update(req.params.token)
       .digest('hex');
+
+    console.log('Hashed token:', hashedToken);
+    console.log('Current time:', Date.now());
 
     const user = await User.findOne({
       passwordResetToken: hashedToken,
       passwordResetExpires: { $gt: Date.now() },
     });
 
+    console.log('User found:', user ? `Yes (${user.email})` : 'No');
+
+    if (user) {
+      console.log('User reset token:', user.passwordResetToken);
+      console.log('Token expires:', user.passwordResetExpires);
+      console.log('Token expired?', user.passwordResetExpires < Date.now());
+    }
+
     if (!user) {
+      console.log('❌ Token validation failed!');
       return next(new AppError('Token is invalid or has expired', 400));
     }
 
@@ -288,17 +335,17 @@ resetPassword = async (req, res, next) => {
     const token = signToken(user.id);
     res.status(200).send({ token, message: 'Password reset successful!' });
   } catch (error) {
-    console.log("Error",error);
-    
+    console.log("Error", error);
+
     return next(new AppError('Something went wrong', 500));
   }
 };
 
-updateUserInfo = async (req, res, next) => {
+const updateUserInfo = async (req, res, next) => {
   try {
     const userId = req.user.id;
     const { firstName, lastName, userName, email, phone } = req.body;
-    console.log("updateUserInfo",req.body);
+    console.log("updateUserInfo", req.body);
 
     const updatedUser = await User.findByIdAndUpdate(
       userId,
@@ -318,30 +365,30 @@ updateUserInfo = async (req, res, next) => {
 };
 
 
-makeAdmin = async (req, res, next) => {
+const makeAdmin = async (req, res, next) => {
   try {
     const currentUserId = req.user.id;
     const targetUserEmail = req.body.email;
 
-    console.log("currentUserId",currentUserId);
+    console.log("currentUserId", currentUserId);
     // console.log("targetUserId",targetUserId);
 
 
-    const currentUser = await User.findOne({_id: currentUserId}).select('role _id');
-    
+    const currentUser = await User.findOne({ _id: currentUserId }).select('role _id');
+
     if (!currentUser || currentUser.role !== 'admin') {
       return res.status(403).send({ message: 'Access denied. Only admins can perform this action.' });
     }
 
-    console.log("currentUser",currentUser._id);
+    console.log("currentUser", currentUser._id);
 
-   const updatedUser = await User.findOneAndUpdate(
+    const updatedUser = await User.findOneAndUpdate(
       { email: targetUserEmail },
       { role: 'admin' },
       { new: true }
     ).select('-password');
 
-    console.log("updatedUser",updatedUser);
+    console.log("updatedUser", updatedUser);
 
     if (!updatedUser) {
       return res.status(404).send({ message: 'Target user not found' });
@@ -430,7 +477,7 @@ getAllUsers = async (req, res, next) => {
     const limit = parseInt(req.query.limit) || 10;
     const skip = (page - 1) * limit;
 
-    console.log("page",page,limit,skip);
+    console.log("page", page, limit, skip);
 
     const users = await User.find()
       .sort({ createdAt: -1 })
@@ -455,7 +502,7 @@ getAllUsers = async (req, res, next) => {
 
 
 // GET /api/user/frequent-buyers?page=1&limit=10
- // Adjust path accordingly
+// Adjust path accordingly
 
 
 
@@ -525,7 +572,7 @@ getFrequentBuyers = async (req, res, next) => {
 const resendSignupOTP = async (req, res, next) => {
   try {
     const { email } = req.body;
-    
+
     if (!email) {
       return res.status(400).json({ message: "Email is required" });
     }
@@ -539,8 +586,8 @@ const resendSignupOTP = async (req, res, next) => {
     // Check rate limit (max 5 attempts per hour)
     const canSendOTP = await checkOTPRateLimit(email, 'signup', 5, 60 * 60 * 1000);
     if (!canSendOTP) {
-      return res.status(429).json({ 
-        message: "Too many OTP attempts. Please wait for 1 hour before requesting another OTP." 
+      return res.status(429).json({
+        message: "Too many OTP attempts. Please wait for 1 hour before requesting another OTP."
       });
     }
 
@@ -549,7 +596,7 @@ const resendSignupOTP = async (req, res, next) => {
 
     // Generate new 6-digit OTP using utility function
     const otp = generateOTP();
-    
+
     // Set expiration time (10 minutes from now)
     const expiresAt = new Date(Date.now() + 10 * 60 * 1000);
 
@@ -564,7 +611,7 @@ const resendSignupOTP = async (req, res, next) => {
     // Send new OTP email
     await sendOTPEmail(email, otp, 'signup');
 
-    res.status(200).json({ 
+    res.status(200).json({
       message: "New OTP sent to your email. Please check and verify.",
       email: email
     });
@@ -598,23 +645,25 @@ const getUserDetails = async (req, res, next) => {
     const { userId } = req.body;
     const user = await User.findOne({ _id: userId });
     if (!user || user.isEmailVerified) {
-      return res.status(404).json({ message: "User not found",success:false });
+      return res.status(404).json({ message: "User not found", success: false });
     }
-    return res.status(200).json({ message: "User found",success:true,user:user,token:signToken(user.id) });
+    return res.status(200).json({ message: "User found", success: true, user: user, token: signToken(user.id) });
   } catch (error) {
     // console.log("Get user details error:", error);
     next(error);
   }
 }
 
-module.exports = { 
-  signup, 
-  login, 
-  forgotPassword, 
-  resetPassword, 
-  changePassword, 
-  getFrequentBuyers, 
-  getUser, 
+module.exports = {
+  signup,
+  login,
+  forgotPassword,
+  resetPassword,
+  updateUserInfo,
+  makeAdmin,
+  changePassword,
+  getFrequentBuyers,
+  getUser,
   getAllUsers,
   generateSignupOTP,
   verifySignupOTP,

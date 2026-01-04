@@ -46,7 +46,7 @@ const ProductSchema = new Schema(
     manufacturer: {
       type: String,
       required: [true, "Manufacturer is required"],
-  },
+    },
     stock: {
       type: Number,
       required: [true, "Stock is required"],
@@ -62,17 +62,29 @@ const ProductSchema = new Schema(
         },
       },
     ],
-    isFeatured :{
+    isFeatured: {
       type: Boolean,
       default: false, // Default value for isFeatured
     },
-    isBestSelling :{
+    isBestSelling: {
+      type: Boolean,
       type: Boolean,
       default: false, // Default value for isBestSelling
     },
+    averageRating: {
+      type: Number,
+      default: 0,
+      min: [0, 'Rating cannot be negative'],
+      max: [5, 'Rating cannot exceed 5'],
+    },
+    totalReviews: {
+      type: Number,
+      default: 0,
+      min: [0, 'Total reviews cannot be negative'],
+    },
     discountPrice: {
       type: Number,
-     
+
       min: [0, "Discount price cannot be negative"],
       default: 0,
     },

@@ -28,25 +28,25 @@ const userSchema = new Schema(
     phone: {
       type: Number,
       required: true,
-      
+
     },
     password: {
       type: String,
       required: true,
       minlength: 6,
-      select: false, 
+      select: false,
     },
     role: {
       type: String,
       enum: ['user', 'admin'],
-      default: 'user', 
+      default: 'user',
     },
     passwordChangedAt: Date,
     passwordResetToken: String,
     passwordResetExpires: Date,
     otp: {
       type: String,
-      
+
     },
     otpExpires: Date,
     isEmailVerified: {
@@ -58,8 +58,22 @@ const userSchema = new Schema(
   { timestamps: true },
 );
 
+// Hash password before saving
+userSchema.pre('save', async function (next) {
+  // Only hash the password if it has been modified (or is new)
+  if (!this.isModified('password')) return next();
 
+  try {
+    // Hash the password with cost of 12
+    const salt = await bcrypt.genSalt(12);
+    this.password = await bcrypt.hash(this.password, salt);
+    next();
+  } catch (error) {
+    next(error);
+  }
+});
 
+// Update passwordChangedAt for existing users
 userSchema.pre('save', function (next) {
   if (!this.isModified('password') || this.isNew) return next();
 
@@ -85,7 +99,7 @@ userSchema.methods.createPasswordResetToken = function () {
     .update(resetToken)
     .digest('hex');
 
-  this.passwordResetExpires = Date.now() + 10 * 60 * 1000; 
+  this.passwordResetExpires = Date.now() + 10 * 60 * 1000;
 
   return resetToken;
 };

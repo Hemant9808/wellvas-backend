@@ -11,6 +11,8 @@ const OrderRoutes = require('./api/routes/OrderRouter');
 const PaymentRoutes = require('./api/routes/PaymentRouter');
 const BlogRoutes = require('./api/routes/BlogRouter')
 const contactRoutes = require('./api/routes/ContactRoutes');
+const ReviewRouter = require('./api/routes/ReviewRouter');
+const CouponRouter = require('./api/routes/CouponRouter');
 // import Razorpay from "razorpay";
 const Razorpay = require("razorpay")
 
@@ -49,12 +51,14 @@ app.use(session({
 // routers
 app.use('/auth', authRouter);
 app.use('/product', productRouter);
-app.use('/cart',CartRouter)
-app.use('/category',CategoryRouter)
-app.use('/order',OrderRoutes);
-app.use('/payment',PaymentRoutes);
-app.use('/blogs',BlogRoutes)
-app.use('/contact',contactRoutes)
+app.use('/cart', CartRouter)
+app.use('/category', CategoryRouter)
+app.use('/order', OrderRoutes);
+app.use('/payment', PaymentRoutes);
+app.use('/blogs', BlogRoutes)
+app.use('/contact', contactRoutes)
+app.use('/reviews', ReviewRouter)
+app.use('/coupons', CouponRouter)
 
 
 // Clean up expired OTPs every 5 minutes
@@ -83,29 +87,29 @@ cron.schedule('*/5 * * * *', async () => {
 //   res.status(200).send('Server is awake!');
 // });
 
-app.get('/', (req, res) =>{
-  const testKey =  process.env.RAZORPAY_KEY_ID_TEST;
+app.get('/', (req, res) => {
+  const testKey = process.env.RAZORPAY_KEY_ID_TEST;
   const testSecret = process.env.RAZORPAY_SECRET_TEST;
 
-  console.log("process.env.RAZORPAY_KEY_ID_TEST: ",process.env.RAZORPAY_KEY_ID_TEST)
-  console.log("process.env.RAZORPAY_SECRET_TEST: ",process.env.RAZORPAY_SECRET_TEST)
-  console.log("process.env.RAZORPAY_KEY_ID_LIVE: ",process.env.RAZORPAY_KEY_ID_LIVE)
-  console.log("process.env.RAZORPAY_SECRET_LIVE: ",process.env.RAZORPAY_SECRET_LIVE)
-  console.log("testKey: ",testKey)
-  console.log("testSecret: ",testSecret)
+  console.log("process.env.RAZORPAY_KEY_ID_TEST: ", process.env.RAZORPAY_KEY_ID_TEST)
+  console.log("process.env.RAZORPAY_SECRET_TEST: ", process.env.RAZORPAY_SECRET_TEST)
+  console.log("process.env.RAZORPAY_KEY_ID_LIVE: ", process.env.RAZORPAY_KEY_ID_LIVE)
+  console.log("process.env.RAZORPAY_SECRET_LIVE: ", process.env.RAZORPAY_SECRET_LIVE)
+  console.log("testKey: ", testKey)
+  console.log("testSecret: ", testSecret)
 
   console.log("welcome our app");
-   res.send('welcome our app')
-  });
+  res.send('welcome our app')
+});
 
 //const CONNECTION_URL = process.env.MONGO_URI;
-const CONNECTION_URL="mongodb+srv://hemant9808:ySEEecsHJArJfzfA@mydb.ovbqzxf.mongodb.net/chatApp";
+const CONNECTION_URL = "mongodb+srv://hemant9808:ySEEecsHJArJfzfA@mydb.ovbqzxf.mongodb.net/chatApp";
 //const CONNECTION_URL = "mongodb://127.0.0.1:27017/chatApp";
 
 
 const PORT = process.env.PORT || 4000;
 
-mongoose 
+mongoose
   .connect(CONNECTION_URL, { useNewUrlParser: true, useUnifiedTopology: true })
   .then(() => app.listen(PORT, () => console.log(`Server Running on Port: http://localhost:${PORT}`))
   )
