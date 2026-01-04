@@ -54,7 +54,7 @@
 
 const User = require("../models/UserModel");
 const AppError = require("../utils/error");
-
+// const AppError = require("../utils/error");
 
 const authValidation = {};
 
