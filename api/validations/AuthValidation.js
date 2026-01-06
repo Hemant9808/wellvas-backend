@@ -52,6 +52,9 @@
 // module.exports = authValidation;
 
 
+
+
+
 const User = require("../models/UserModel");
 const AppError = require("../utils/error");
 
@@ -65,7 +68,7 @@ const reg_exp_for_email =
 authValidation.signUpValidation = async (req, res, next) => {
   const { fastName, lastName, userName, email, phone, password } = req.body;
 
-  if (!fastName || !lastName || !userName || !email || !phone || !password ) {
+  if (!fastName || !lastName || !userName || !email || !phone || !password) {
     return next(new AppError('Enter all the fields', 400));
   }
 
@@ -85,7 +88,7 @@ authValidation.signUpValidation = async (req, res, next) => {
   if (existingUser) {
     return next(new AppError('An account with this email already exists', 400));
   }
-console.log("last step");
+  console.log("last step");
 
   next();
 };
