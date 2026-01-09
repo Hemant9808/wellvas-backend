@@ -1,4 +1,4 @@
- const payment=  `<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+const payment = `<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
 <html dir="ltr" xmlns="http://www.w3.org/1999/xhtml" xmlns:o="urn:schemas-microsoft-com:office:office" lang="en">
  <head>
   <meta charset="UTF-8">
@@ -1666,7 +1666,7 @@ const welcome = `<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" 
   </body>
 </html>
 `
-const template=`
+const template = `
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
 <html
   dir="ltr"
@@ -2997,7 +2997,7 @@ const template=`
   </body>
 </html>
 `
-const template2=`
+const template2 = `
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
 <html
   dir="ltr"
@@ -4041,7 +4041,7 @@ const template2=`
 </html>
 `
 
- const emailVerificationTemplate = `
+const emailVerificationTemplate = `
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -4116,7 +4116,7 @@ const template2=`
 
 
 // Newsletter Subscription Template
- const newsletterSubscriptionTemplate = `
+const newsletterSubscriptionTemplate = `
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -4195,7 +4195,7 @@ const template2=`
 `;
 
 // Password Reset Template
- const passwordResetTemplate = `
+const passwordResetTemplate = `
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -4267,7 +4267,7 @@ const template2=`
 </body>
 </html>
 `
-const winnerAnnouncementTemplate =`
+const winnerAnnouncementTemplate = `
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -4363,7 +4363,7 @@ const winnerAnnouncementTemplate =`
 </html>
 `
 
-const lotteryPurchaseTemplate =`
+const lotteryPurchaseTemplate = `
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -4474,4 +4474,4 @@ const lotteryPurchaseTemplate =`
 
 
 
-module.exports = { payment,welcome,template,template2,emailVerificationTemplate,winnerAnnouncementTemplate,newsletterSubscriptionTemplate, passwordResetTemplate };
+module.exports = { payment, welcome, template, template2, emailVerificationTemplate, winnerAnnouncementTemplate, newsletterSubscriptionTemplate, passwordResetTemplate };

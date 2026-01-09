@@ -11,8 +11,8 @@ const sendEmail = async (options) => {
     port: 465,
     secure: true, // or any other email service provider
     auth: {
-      user: "wellvas07@gmail.com",
-      pass: "ewlxfrharmuygpwg",
+      user: "ayucanhealthcare@gmail.com",
+      pass: "vuwipzsxuvoigtfz",
       // user: "kumarhemantk64@gmail.com",
       // pass: "sikhwhemlxlexvkw"
     },
@@ -23,9 +23,9 @@ const sendEmail = async (options) => {
 
   // 2. Define the email options
   const mailOptions = {
-    from: "hemant@adirayglobal.com",
+    from: "ayucanhealthcare@gmail.com",
     to: options.email || "hemant27134@gmail.com",
-    subject: options.subject || "Wellvas Notification",
+    subject: options.subject || "Ayucan Notification",
     html: options.html || options.message || temp12
   };
 
@@ -36,14 +36,14 @@ const sendEmail = async (options) => {
 // Function to send OTP email
 const sendOTPEmail = async (email, otp, purpose = 'signup') => {
   const subject = purpose === 'signup'
-    ? 'Verify Your Email - Wellvas Signup'
-    : 'Password Reset OTP - Wellvas';
+    ? 'Verify Your Email - Ayucan Signup'
+    : 'Password Reset OTP - Ayucan';
 
   const html = `
     <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; background-color: #f9f9f9;">
       <div style="background-color: #ffffff; padding: 30px; border-radius: 10px; box-shadow: 0 2px 10px rgba(0,0,0,0.1);">
         <div style="text-align: center; margin-bottom: 30px;">
-          <h2 style="color: #333; margin: 0;">Wellvas</h2>
+          <h2 style="color: #333; margin: 0;">Ayucan</h2>
           <p style="color: #666; margin: 10px 0;">${purpose === 'signup' ? 'Complete Your Registration' : 'Reset Your Password'}</p>
         </div>
         
@@ -79,13 +79,13 @@ const sendOTPEmail = async (email, otp, purpose = 'signup') => {
 
 // Function to send order confirmation email
 const sendOrderConfirmationEmail = async (userEmail, userName, orderDetails) => {
-  const subject = 'Order Confirmation - Wellvas';
+  const subject = 'Order Confirmation - Ayucan';
 
   const html = `
     <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; background-color: #f9f9f9;">
       <div style="background-color: #ffffff; padding: 30px; border-radius: 10px; box-shadow: 0 2px 10px rgba(0,0,0,0.1);">
         <div style="text-align: center; margin-bottom: 30px;">
-          <h2 style="color: #333; margin: 0;">Wellvas</h2>
+          <h2 style="color: #333; margin: 0;">Ayucan</h2>
           <p style="color: #666; margin: 10px 0;">Order Confirmation</p>
         </div>
         
@@ -138,7 +138,7 @@ const sendOrderConfirmationEmail = async (userEmail, userName, orderDetails) => 
             If you have any questions about your order, please contact our customer support.
           </p>
           <p style="color: #999; font-size: 14px; margin: 10px 0 0 0;">
-            Thank you for choosing Wellvas!
+            Thank you for choosing Ayucan!
           </p>
         </div>
       </div>
