@@ -246,19 +246,19 @@ const forgotPassword = async (req, res, next) => {
     await user.save({ validateBeforeSave: false });
 
     // Create reset URL - Points to frontend with token as query parameter
-    const frontendURL = process.env.FRONTEND_URL || 'http://localhost:5173';
+    const frontendURL = process.env.FRONTEND_URL || 'https://ayucan.com';
     const resetURL = `${frontendURL}/reset-password?token=${resetToken}`;
     console.log("resetURL", resetURL);
 
     const emailOptions = {
       email: user.email,
-      subject: 'Password Reset Request - Wellvas',
+      subject: 'Password Reset Request - Ayucan',
       message: `
         <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; background-color: #f4f4f4;">
           <div style="background-color: white; padding: 30px; border-radius: 10px; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
             <h2 style="color: #2c3e50; margin-bottom: 20px;">Password Reset Request</h2>
             <p style="color: #555; line-height: 1.6;">Hi ${user.firstName},</p>
-            <p style="color: #555; line-height: 1.6;">We received a request to reset your password for your Wellvas account.</p>
+            <p style="color: #555; line-height: 1.6;">We received a request to reset your password for your Ayucan account.</p>
             <p style="color: #555; line-height: 1.6;">Click the button below to reset your password:</p>
             <div style="text-align: center; margin: 30px 0;">
               <a href="${resetURL}" style="background-color: #3498db; color: white; padding: 12px 30px; text-decoration: none; border-radius: 5px; display: inline-block;">Reset Password</a>
@@ -269,7 +269,7 @@ const forgotPassword = async (req, res, next) => {
             <p style="color: #999; font-size: 12px; margin-top: 20px; border-top: 1px solid #eee; padding-top: 20px;">
               If you didn't request a password reset, please ignore this email or contact support if you have concerns.
             </p>
-            <p style="color: #555; margin-top: 20px;">Best regards,<br><strong>Wellvas Team</strong></p>
+            <p style="color: #555; margin-top: 20px;">Best regards,<br><strong>Ayucan Team</strong></p>
           </div>
         </div>
       `,
