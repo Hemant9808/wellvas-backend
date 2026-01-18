@@ -66,7 +66,7 @@ const adminLogin = async (req, res, next) => {
 
   } catch (error) {
     console.error('Admin login error:', error);
-    return next(new AppError('Error during admin login', 500));
+    return next(new AppError(error.message, 500));
   }
 };
 
