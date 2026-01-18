@@ -1,6 +1,6 @@
 # OTP-Based Signup System
 
-This document describes the new OTP-based signup functionality implemented in the Wellvas backend.
+This document describes the new OTP-based signup functionality implemented in the Ayucan backend.
 
 ## Overview
 
@@ -94,7 +94,7 @@ Resends a new OTP if the previous one expired or wasn't received.
 - **Automatic cleanup**: Expired OTPs are automatically removed
 
 ### User Experience
-- **Professional email template**: Beautiful HTML email with Wellvas branding
+- **Professional email template**: Beautiful HTML email with Ayucan branding
 - **Clear instructions**: User-friendly messages and error handling
 - **Resend functionality**: Users can request new OTPs if needed
 - **Session management**: Temporary user data storage during verification
