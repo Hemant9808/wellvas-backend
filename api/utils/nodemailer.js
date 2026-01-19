@@ -11,8 +11,8 @@ const sendEmail = async (options) => {
     port: 465,
     secure: true, // or any other email service provider
     auth: {
-      user: "wellvas07@gmail.com",
-      pass: "ewlxfrharmuygpwg",
+      user: "ayucanhealthcare@gmail.com",
+      pass: "ohizldjarfqptubt",
       // user: "kumarhemantk64@gmail.com",
       // pass: "sikhwhemlxlexvkw"
     },
