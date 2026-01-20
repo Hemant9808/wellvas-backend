@@ -12,7 +12,7 @@ const sendEmail = async (options) => {
     secure: true, // or any other email service provider
     auth: {
       user: "ayucanhealthcare@gmail.com",
-      pass: "ohizldjarfqptubt",
+      pass: "uzxeaehplrigbcef",
       // user: "kumarhemantk64@gmail.com",
       // pass: "sikhwhemlxlexvkw"
     },
