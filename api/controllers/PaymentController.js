@@ -145,6 +145,11 @@ const getRazorpayInstances = () => {
 
  const getKey = (req,res)=>{
   try {
+    const testKey = process.env.RAZORPAY_KEY_ID_TEST;
+    const testSecret = process.env.RAZORPAY_SECRET_TEST;
+    const liveKey = process.env.RAZORPAY_KEY_ID_LIVE;
+    const liveSecret = process.env.RAZORPAY_SECRET_LIVE;
+
     // const { testKey } = getRazorpayInstances();
     res.send({key:liveKey});
     res.send({key:testKey});
