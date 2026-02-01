@@ -146,7 +146,7 @@ const getRazorpayInstances = () => {
  const getKey = (req,res)=>{
   try {
     // const { testKey } = getRazorpayInstances();
-    res.send({key:"rzp_live_BTUEwJ6xKyzFkV"});
+    res.send({key:liveKey});
     res.send({key:testKey});
   } catch (error) {
     res.status(500).send({message: error.message});
