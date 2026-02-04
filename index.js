@@ -15,6 +15,7 @@ const ReviewRouter = require('./api/routes/ReviewRouter');
 const CouponRouter = require('./api/routes/CouponRouter');
 const OfflineCustomerRouter = require('./api/routes/OfflineCustomerRouter');
 const OfflineInvoiceRouter = require('./api/routes/OfflineInvoiceRouter');
+const RewardRouter = require('./api/routes/RewardRouter');
 // import Razorpay from "razorpay";
 const Razorpay = require("razorpay")
 
@@ -63,6 +64,7 @@ app.use('/reviews', ReviewRouter)
 app.use('/coupons', CouponRouter)
 app.use('/offline-customers', OfflineCustomerRouter)
 app.use('/offline-invoices', OfflineInvoiceRouter)
+app.use('/rewards', RewardRouter)
 
 
 // Clean up expired OTPs every 5 minutes
