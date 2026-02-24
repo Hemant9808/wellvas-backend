@@ -251,7 +251,7 @@ const forgotPassword = async (req, res, next) => {
     await user.save({ validateBeforeSave: false });
 
     // Create reset URL - Points to frontend with token as query parameter
-    const frontendURL = process.env.FRONTEND_URL || 'http://localhost:5173';
+    const frontendURL = process.env.FRONTEND_URL || 'https://ayucan.com';
     const resetURL = `${frontendURL}/reset-password?token=${resetToken}`;
     console.log("resetURL", resetURL);
 
