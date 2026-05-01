@@ -88,6 +88,10 @@ const ProductSchema = new Schema(
       min: [0, "Discount price cannot be negative"],
       default: 0,
     },
+    sequence: {
+      type: Number,
+      default: 0,
+    },
   },
   {
     timestamps: true, // Automatically adds `createdAt` and `updatedAt` fields

@@ -8,7 +8,7 @@ const Prescription = require("../models/PrescriptionModel.js");
 
 getAllProducts = async (req, res) => {
   try {
-    const products = await Product.find();
+    const products = await Product.find().sort({ sequence: 1, createdAt: -1 });
     res.status(200).send(products);
   } catch (error) {
     res.status(500).send({ message: "Server error", error: error.message });
@@ -69,7 +69,7 @@ const getProductByCategories = async (req, res) => {
     console.log(category);
     //category is "" return all products
     if (category === "") {
-      const products = await Product.find();
+      const products = await Product.find().sort({ sequence: 1, createdAt: -1 });
       return res.status(200).json(products).select("_id");
     }
 
@@ -80,7 +80,7 @@ const getProductByCategories = async (req, res) => {
 
     // const categoryArray = Array.isArray(categories) ? categories : [categories];
 
-    const products = await Product.find({ categories: { $in: categoryId } });
+    const products = await Product.find({ categories: { $in: categoryId } }).sort({ sequence: 1, createdAt: -1 });
 
     if (products.length === 0) {
       return res.status(200).json(products);
@@ -97,7 +97,7 @@ const getProductBySubcategories = async (req, res) => {
     const { subcategoryIds } = req.body;
     const products = await Product.find({
       subcategories: { $in: subcategoryIds },
-    });
+    }).sort({ sequence: 1, createdAt: -1 });
 
     if (!products || products.length === 0) {
       return res
@@ -430,6 +430,25 @@ const updateStock = async (req, res) => {
   }
 };
 
+const updateProductSequence = async (req, res) => {
+  try {
+    const { updates } = req.body;
+    if (!updates || !Array.isArray(updates)) {
+      return res.status(400).send({ message: "Invalid updates format" });
+    }
+
+    await Promise.all(
+      updates.map((update) =>
+        Product.findByIdAndUpdate(update.id, { sequence: update.sequence })
+      )
+    );
+
+    res.status(200).send({ message: "Sequence updated successfully" });
+  } catch (error) {
+    res.status(500).send({ message: "Server error", error: error.message });
+  }
+};
+
 module.exports = {
   addProducts,
   getProductById,
@@ -443,4 +462,5 @@ module.exports = {
   markProductAsFeatured,
   markProductAsBestSelling,
   updateStock,
+  updateProductSequence,
 };

@@ -91,13 +91,26 @@ getUserCart = async (req, res) => {
   const userId = req.user.id;
 
   try {
-    const cart = await Cart.findOne({ userId }).populate(
+    let cart = await Cart.findOne({ userId }).populate(
       "items.productId",
       "price name images brand"
     );
     if (!cart) {
       return res.status(200).json([]);
     }
+
+    // Auto-remove products that have been deleted by the admin
+    const originalItemCount = cart.items.length;
+    cart.items = cart.items.filter((item) => item.productId != null);
+
+    if (cart.items.length !== originalItemCount) {
+      const { totalItems, totalPrice, totalDiscountPrice } = calculateCartTotal(cart.items);
+      cart.totalItems = totalItems;
+      cart.totalPrice = totalPrice;
+      cart.totalDiscountPrice = totalDiscountPrice;
+      await cart.save();
+    }
+
     res.status(200).json(cart);
   } catch (error) {
     res.status(500).json({ error: "Internal server error" });
