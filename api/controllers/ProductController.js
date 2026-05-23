@@ -5,6 +5,9 @@ const Subcategory = require("../models/SubcategoryModel");
 const { uploadOnCloudinary } = require("../utils/cloudinary.js");
 const User = require("../models/UserModel.js");
 const Prescription = require("../models/PrescriptionModel.js");
+const sharp = require("sharp");
+const fs = require("fs");
+const path = require("path");
 
 getAllProducts = async (req, res) => {
   try {
@@ -252,10 +255,28 @@ const uploadImage = async (req, res) => {
     console.log("coverImageLocalPath", coverImageLocalPath);
 
     if (!coverImageLocalPath) {
-      res.send({ message: "coverImageLocalPath not found" });
+      return res.send({ message: "coverImageLocalPath not found" });
     }
 
-    const coverImage = await uploadOnCloudinary(coverImageLocalPath);
+    // Prepare optimized output path
+    const parsedPath = path.parse(coverImageLocalPath);
+    const optimizedLocalPath = path.join(parsedPath.dir, `${parsedPath.name}-optimized.webp`);
+
+    // Compress and convert to next-gen WebP using sharp
+    await sharp(coverImageLocalPath)
+      .webp({ quality: 80 })
+      .toFile(optimizedLocalPath);
+
+    // Upload the optimized WebP file to Cloudinary
+    const coverImage = await uploadOnCloudinary(optimizedLocalPath);
+
+    // Clean up local files (original and optimized temporary)
+    try {
+      if (fs.existsSync(coverImageLocalPath)) fs.unlinkSync(coverImageLocalPath);
+      if (fs.existsSync(optimizedLocalPath)) fs.unlinkSync(optimizedLocalPath);
+    } catch (cleanupErr) {
+      console.error("Local file cleanup error:", cleanupErr);
+    }
 
     if (coverImage == null) {
       return res.send({ message: "coverImage is null " });
@@ -265,8 +286,6 @@ const uploadImage = async (req, res) => {
     }
     console.log("coverImage", coverImage);
     return res.send({ coverImage: coverImage.url });
-
-    return res.status(200).json(coverImage.url);
   } catch (error) {
     console.log(error);
     res.send(error.message);
