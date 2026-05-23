@@ -81,7 +81,12 @@ const addToCart = async (req, res) => {
     // console.log("update cart", cart);
 
     await cart.save();
-    res.status(200).json(cart);
+
+    const populatedCart = await Cart.findOne({ userId }).populate(
+      "items.productId",
+      "price name images brand"
+    );
+    res.status(200).json(populatedCart);
   } catch (error) {
     res.status(500).json({ message: error.message });
   }
@@ -146,7 +151,12 @@ removeItemFromCart = async (req, res) => {
     cart.totalDiscountPrice = totalDiscountPrice;
 
     await cart.save();
-    res.status(200).json(cart);
+    
+    const populatedCart = await Cart.findOne({ userId }).populate(
+      "items.productId",
+      "price name images brand"
+    );
+    res.status(200).json(populatedCart);
 
   } catch (error) {
     res.status(500).json({ message:error.message});
