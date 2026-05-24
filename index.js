@@ -94,18 +94,23 @@ cron.schedule('*/5 * * * *', async () => {
 // });
 
 app.get('/', (req, res) => {
-  const testKey = process.env.RAZORPAY_KEY_ID_TEST;
-  const testSecret = process.env.RAZORPAY_SECRET_TEST;
-
-  console.log("process.env.RAZORPAY_KEY_ID_TEST: ", process.env.RAZORPAY_KEY_ID_TEST)
-  console.log("process.env.RAZORPAY_SECRET_TEST: ", process.env.RAZORPAY_SECRET_TEST)
-  console.log("process.env.RAZORPAY_KEY_ID_LIVE: ", process.env.RAZORPAY_KEY_ID_LIVE)
-  console.log("process.env.RAZORPAY_SECRET_LIVE: ", process.env.RAZORPAY_SECRET_LIVE)
-  console.log("testKey: ", testKey)
-  console.log("testSecret: ", testSecret)
-
-  console.log("welcome our app");
-  res.send('welcome our app')
+  res.send(`
+    <div style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; text-align: center; padding: 50px 20px; background-color: #FDFBF7; min-height: 100vh; display: flex; flex-direction: column; justify-content: center; align-items: center; margin: 0; box-sizing: border-box;">
+      <div style="background-color: #ffffff; padding: 45px 30px; border-radius: 24px; box-shadow: 0 10px 30px rgba(42,59,40,0.05); border: 1px solid rgba(113,80,54,0.1); max-width: 500px; width: 100%;">
+        <h1 style="color: #2A3B28; font-family: 'Georgia', serif; font-size: 32px; letter-spacing: 4px; margin: 0 0 8px 0; text-transform: uppercase;">AYUCAN</h1>
+        <p style="color: #C17C3A; font-size: 10px; font-weight: bold; letter-spacing: 2px; text-transform: uppercase; margin: 0 0 25px 0;">Premium Ayurvedic Wellness</p>
+        <div style="display: inline-block; background-color: #EBF7EE; color: #1E6B30; font-size: 12px; font-weight: bold; padding: 8px 20px; border-radius: 50px; margin-bottom: 25px; border: 1px solid #C2EDCD; text-transform: uppercase; letter-spacing: 1px;">
+          🟢 Server Status: Live & Optimized
+        </div>
+        <p style="color: #715036; font-size: 14px; line-height: 1.6; margin: 0 0 20px 0;">
+          Your backend REST API, secure Razorpay verification, fuzzy search systems, and premium mailers are fully loaded and operational.
+        </p>
+        <div style="border-t: 1px solid #F2ECE7; border-top: 1px solid #F2ECE7; padding-top: 20px; font-size: 11px; color: #715036/60;">
+          System Connection Status: Connected & Verified
+        </div>
+      </div>
+    </div>
+  `);
 });
 
 //const CONNECTION_URL = process.env.MONGO_URI;

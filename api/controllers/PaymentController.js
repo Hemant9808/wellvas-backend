@@ -66,76 +66,68 @@ const getRazorpayInstances = () => {
  
 };
 
- const paymentVerification = async (req, res) => {
-    // console.log("paymentVerification called ...........");
-    // console.log("req.body: ",req.body)
-    const payment = req.body.payload.payment.entity;
-    // console.log("req.body.payload: ",payment.amount,payment.order_id,payment.id,payment.status,payment.method,payment.upi.vpa)
-  const { razorpay_order_id, razorpay_payment_id, razorpay_signature } =
-    req.body;
-  console.log(
-    "credentials",
-    razorpay_order_id,
-    razorpay_payment_id,
-    razorpay_signature
-  );
+const paymentVerification = async (req, res) => {
+  try {
+    const event = req.body.event;
+    console.log("Razorpay Webhook Event Received:", event);
 
-  // const body = razorpay_order_id + "|" + razorpay_payment_id;
+    const payment = req.body.payload?.payment?.entity;
+    if (!payment) {
+      return res.status(400).json({ success: false, message: "Invalid payload: no payment entity found" });
+    }
 
-  // const expectedSignature = crypto
-  //   .createHmac("sha256","2YaFnkiQArYObRYboB6n5mOX")
-  //   .update(body.toString())
-  //   .digest("hex");
+    console.log(`Processing Webhook Event: ${event} | Payment ID: ${payment.id} | Order ID: ${payment.order_id} | Status: ${payment.status}`);
 
-  // const isAuthentic = expectedSignature === razorpay_signature;
-  
-  try{
+    // Define variables based on the webhook event type
+    let isAuthorised = false;
+    let paymentStatus = "not-paid";
+
+    if (event === "payment.captured" || event === "order.paid") {
+      isAuthorised = true;
+      paymentStatus = "paid";
+    } else if (event === "payment.failed") {
+      isAuthorised = false;
+      paymentStatus = "failed";
+    } else {
+      // For any other webhook events (like payment.authorized, etc.), 
+      // just log it and return a successful 200 OK response to Razorpay
+      console.log(`Unhandled webhook event: ${event}. Acknowledging with 200 OK.`);
+      return res.status(200).json({
+        success: true,
+        message: `Webhook event ${event} acknowledged`
+      });
+    }
+
+    // Map fields from payment payload securely
     const mockReq = {
-       // params: { razorpay_order_id: req.params.order_id },
-        body: {
-          authorised:true,
-           razorpay_payment_id : payment.id,
-           razorpay_order_id:payment.order_id,
-           paymentStatus:"paid",
-           paymentMethod:payment.method,
-           upi_payment_id:payment.upi.vpa,
-           transaction_id:payment?.acquirer_data?.upi_transaction_id,
-           
-        },
-      };
-      const mockRes = {
-        json: (data) => data, // Mock the res.json call
-        status: (code) => ({
-          json: (message) => message, // Mock the res.status().json call
-        }),
-        
-      };
+      body: {
+        authorised: isAuthorised,
+        razorpay_payment_id: payment.id,
+        razorpay_order_id: payment.order_id,
+        paymentStatus: paymentStatus,
+        paymentMethod: payment.method || "online",
+        upi_payment_id: payment.upi?.vpa || "",
+        transaction_id: payment?.acquirer_data?.upi_transaction_id || payment?.acquirer_data?.bank_transaction_id || "",
+      },
+    };
 
-      
-    console.log("mockReq",mockReq);
-    
+    const mockRes = {
+      json: (data) => data, // Mock the res.json call
+      status: (code) => ({
+        json: (message) => message, // Mock the res.status().json call
+      }),
+    };
+
+    console.log("Mocking request to updateOrderToPaid:", mockReq.body);
     await updateOrderToPaid(mockReq, mockRes);
-    console.log("updateOrderToPaid called");
-
-    //send email to user
-      
-
-
-
-
-
-
-
-
+    console.log("updateOrderToPaid executed successfully");
 
     return res.status(200).json({
       success: true,
-      message: "webhook processed successfully",
- 
+      message: `Webhook processed successfully for event: ${event}`,
     });
-    
-  
   } catch (error) {
+    console.error("Razorpay Webhook Processing Error:", error.message);
     res.status(200).json({
       success: false,
       message: error.message,

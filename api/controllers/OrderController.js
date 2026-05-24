@@ -132,22 +132,24 @@ const updateOrderToPaid = async (req, res) => {
       }
     }
 
-    // Send confirmation email to user
-    try {
-      const userName = `${order.user.firstName} ${order.user.lastName}`;
-      const orderDetails = {
-        razorpay_order_id: updatedOrder.razorpay_order_id,
-        razorpay_payment_id: updatedOrder.paymentResult.razorpay_payment_id,
-        totalPrice: updatedOrder.totalPrice,
-        paymentMethod: updatedOrder.paymentResult.paymentMethod,
-        createdAt: updatedOrder.createdAt
-      };
-      
-      await sendOrderConfirmationEmail(order.user.email, userName, orderDetails);
-      console.log("Order confirmation email sent successfully");
-    } catch (emailError) {
-      console.error("Error sending order confirmation email:", emailError);
-      // Don't fail the order update if email fails
+    // Send confirmation email to user (only if successfully paid and authorised)
+    if (updatedOrder.authorised) {
+      try {
+        const userName = `${order.user.firstName} ${order.user.lastName}`;
+        const orderDetails = {
+          razorpay_order_id: updatedOrder.razorpay_order_id,
+          razorpay_payment_id: updatedOrder.paymentResult.razorpay_payment_id,
+          totalPrice: updatedOrder.totalPrice,
+          paymentMethod: updatedOrder.paymentResult.paymentMethod,
+          createdAt: updatedOrder.createdAt
+        };
+        
+        await sendOrderConfirmationEmail(order.user.email, userName, orderDetails);
+        console.log("Order confirmation email sent successfully");
+      } catch (emailError) {
+        console.error("Error sending order confirmation email:", emailError);
+        // Don't fail the order update if email fails
+      }
     }
     
     // res.status(200).json(updatedOrder);
