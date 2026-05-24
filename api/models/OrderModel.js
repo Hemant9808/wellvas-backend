@@ -101,7 +101,7 @@ const orderSchema = new Schema(
       paidAt: String,
       paymentMethod: {
         type: String,
-        enum: ["credit_card", "paypal", "stripe", "cod","upi"], // Add more methods as needed
+        enum: ["credit_card", "paypal", "stripe", "cod","upi","online"], // Add more methods as needed
         required: true,
         default: "cod",
       },
