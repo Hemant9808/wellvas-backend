@@ -468,6 +468,43 @@ const updateProductSequence = async (req, res) => {
   }
 };
 
+const searchProducts = async (req, res) => {
+  try {
+    const { q } = req.query;
+    if (!q || q.trim() === "") {
+      return res.status(200).send([]);
+    }
+
+    const searchQuery = q.trim();
+
+    // 1. Try Full-Text MongoDB Weighted Search first
+    let products = await Product.find(
+      { $text: { $search: searchQuery } },
+      { score: { $meta: "textScore" } }
+    )
+    .sort({ score: { $meta: "textScore" } })
+    .limit(15);
+
+    // 2. If no text-search results found (e.g. user is still typing part of a word like "shila"),
+    // perform partial case-insensitive Regex search fallback
+    if (!products || products.length === 0) {
+      products = await Product.find({
+        $or: [
+          { name: { $regex: searchQuery, $options: "i" } },
+          { brand: { $regex: searchQuery, $options: "i" } },
+          { description: { $regex: searchQuery, $options: "i" } }
+        ]
+      })
+      .sort({ sequence: 1, createdAt: -1 })
+      .limit(15);
+    }
+
+    res.status(200).send(products);
+  } catch (error) {
+    res.status(500).send({ message: "Search error", error: error.message });
+  }
+};
+
 module.exports = {
   addProducts,
   getProductById,
@@ -482,4 +519,5 @@ module.exports = {
   markProductAsBestSelling,
   updateStock,
   updateProductSequence,
+  searchProducts,
 };

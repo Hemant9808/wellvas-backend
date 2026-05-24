@@ -98,6 +98,23 @@ const ProductSchema = new Schema(
   }
 );
 
+// Compound text index for weighted fuzzy searching
+ProductSchema.index(
+  {
+    name: "text",
+    brand: "text",
+    description: "text"
+  },
+  {
+    weights: {
+      name: 10,
+      brand: 5,
+      description: 2
+    },
+    name: "ProductSearchIndex"
+  }
+);
+
 const Product = mongoose.model("Product", ProductSchema);
 
 module.exports = Product;
