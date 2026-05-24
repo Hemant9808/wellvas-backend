@@ -105,7 +105,7 @@ app.get('/', (req, res) => {
   console.log("testSecret: ", testSecret)
 
   console.log("welcome our app");
-  res.send('welcome our app')
+  res.send('welcome our app CI/CD integrated')
 });
 
 //const CONNECTION_URL = process.env.MONGO_URI;
