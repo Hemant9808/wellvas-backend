@@ -117,7 +117,7 @@ const PORT = process.env.PORT || 4000;
 
 mongoose
   .connect(CONNECTION_URL, { useNewUrlParser: true, useUnifiedTopology: true })
-  .then(() => app.listen(PORT, () => console.log(`Server Running on Port: http://localhost:${PORT}`))
+  .then(() => app.listen(PORT, () => console.log(`Server Running on Port: http://localhost:${PORT} , CI/CD is working`))
   )
   .catch((error) => console.log(`${error} did not connect`));
 
