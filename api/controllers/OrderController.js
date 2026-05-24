@@ -212,8 +212,8 @@ const updateOrderStatus= async (req, res) => {
 
     const updatedOrder = await order.save();
 
-    // Revert/Restore stock if changing from non-cancelled to cancelled
-    if (status.toLowerCase() === 'cancelled' && previousStatus.toLowerCase() !== 'cancelled') {
+    // Revert/Restore stock if changing from non-cancelled to cancelled (only if order was authorised before!)
+    if (status.toLowerCase() === 'cancelled' && previousStatus.toLowerCase() !== 'cancelled' && order.authorised) {
       for (const item of updatedOrder.items) {
         try {
           const prodId = item.productId?._id || item.productId;
@@ -301,15 +301,12 @@ const getAllOrders = async (req, res) => {
     // Get filter parameter: 'completed' (default), 'abandoned', or 'all'
     const filterType = req.query.filter || 'completed';
 
-    // Delete only unauthorized orders that are older than 48 hours (abandoned checkouts window)
-    const retentionCutoff = new Date(Date.now() - 48 * 60 * 60 * 1000);
-    await Order.deleteMany({ authorised: false, createdAt: { $lt: retentionCutoff } });
-
     let query = {};
     if (filterType === 'completed') {
       query.authorised = true;
     } else if (filterType === 'abandoned') {
       query.authorised = false;
+      query.orderStatus = { $ne: 'cancelled' };
     } else if (filterType === 'all') {
       // Return both
     }
@@ -483,6 +480,143 @@ const sendAbandonedCheckoutRecoveries = async () => {
 };
 
 
+// Confirm and validate an abandoned checkout, converting it into a valid Cash on Delivery (COD) order to be shipped
+const confirmAbandonedOrderAsCod = async (req, res) => {
+  try {
+    const { id } = req.body;
+    const order = await Order.findById(id).populate('user', 'firstName lastName email');
+    
+    if (!order) {
+      return res.status(404).json({ message: "Order not found" });
+    }
+
+    if (order.authorised) {
+      return res.status(400).json({ message: "Order is already completed" });
+    }
+
+    const wasAuthorisedBefore = order.authorised;
+
+    // Convert to completed COD order
+    order.authorised = true;
+    order.orderStatus = "Order Confirmed";
+    order.paymentResult = {
+      paymentMethod: "cod",
+      paymentStatus: "not-paid",
+      paidAt: null
+    };
+
+    const updatedOrder = await order.save();
+
+    // Decrement product stock (since order is now authorised)
+    if (updatedOrder.authorised && !wasAuthorisedBefore) {
+      for (const item of updatedOrder.items) {
+        try {
+          const prodId = item.productId?._id || item.productId;
+          if (prodId) {
+            await Product.findByIdAndUpdate(
+              prodId,
+              { $inc: { stock: -item.quantity } },
+              { new: true }
+            );
+            console.log(`Product stock decremented (COD recovery): ${prodId} by ${item.quantity}`);
+          }
+        } catch (stockError) {
+          console.error(`Error decrementing stock for ${item.productId?._id || item.productId}:`, stockError);
+        }
+      }
+    }
+
+    // Automatically send premium invoice email to customer immediately!
+    try {
+      const userName = `${order.user.firstName} ${order.user.lastName}`;
+      const orderDetails = {
+        razorpay_order_id: "COD-" + updatedOrder._id.toString().slice(-8).toUpperCase(),
+        razorpay_payment_id: "N/A (Cash on Delivery)",
+        totalPrice: updatedOrder.totalPrice,
+        paymentMethod: "cod",
+        createdAt: updatedOrder.createdAt
+      };
+      await sendOrderConfirmationEmail(order.user.email, userName, orderDetails);
+      console.log("COD Recovery Order confirmation email sent successfully");
+    } catch (emailError) {
+      console.error("Error sending recovery confirmation email:", emailError);
+    }
+
+    res.status(200).json({ success: true, order: updatedOrder });
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+
+// Confirm and validate an abandoned checkout, converting it into a valid PAID order (Direct customer payment)
+const confirmAbandonedOrderAsPaid = async (req, res) => {
+  try {
+    const { id } = req.body;
+    const order = await Order.findById(id).populate('user', 'firstName lastName email');
+    
+    if (!order) {
+      return res.status(404).json({ message: "Order not found" });
+    }
+
+    if (order.authorised) {
+      return res.status(400).json({ message: "Order is already completed" });
+    }
+
+    const wasAuthorisedBefore = order.authorised;
+
+    // Convert to completed Paid order (Direct payment)
+    order.authorised = true;
+    order.orderStatus = "Order Confirmed";
+    order.paymentResult = {
+      paymentMethod: "upi",
+      paymentStatus: "paid",
+      paidAt: Date.now()
+    };
+
+    const updatedOrder = await order.save();
+
+    // Decrement product stock (since order is now authorised)
+    if (updatedOrder.authorised && !wasAuthorisedBefore) {
+      for (const item of updatedOrder.items) {
+        try {
+          const prodId = item.productId?._id || item.productId;
+          if (prodId) {
+            await Product.findByIdAndUpdate(
+              prodId,
+              { $inc: { stock: -item.quantity } },
+              { new: true }
+            );
+            console.log(`Product stock decremented (Paid recovery): ${prodId} by ${item.quantity}`);
+          }
+        } catch (stockError) {
+          console.error(`Error decrementing stock for ${item.productId?._id || item.productId}:`, stockError);
+        }
+      }
+    }
+
+    // Automatically send premium invoice email to customer immediately!
+    try {
+      const userName = `${order.user.firstName} ${order.user.lastName}`;
+      const orderDetails = {
+        razorpay_order_id: "DIRECT-" + updatedOrder._id.toString().slice(-8).toUpperCase(),
+        razorpay_payment_id: "DIRECT-TRANSFER",
+        totalPrice: updatedOrder.totalPrice,
+        paymentMethod: "upi",
+        createdAt: updatedOrder.createdAt
+      };
+      await sendOrderConfirmationEmail(order.user.email, userName, orderDetails);
+      console.log("Direct Paid Recovery Order confirmation email sent successfully");
+    } catch (emailError) {
+      console.error("Error sending recovery confirmation email:", emailError);
+    }
+
+    res.status(200).json({ success: true, order: updatedOrder });
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+
+
 module.exports = {
   createOrder,
   getOrderById,
@@ -492,4 +626,6 @@ module.exports = {
   getAllOrders,
   getOrderStatistics,
   sendAbandonedCheckoutRecoveries,
+  confirmAbandonedOrderAsCod,
+  confirmAbandonedOrderAsPaid,
 };
