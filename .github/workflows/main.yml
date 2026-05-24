@@ -1,4 +1,4 @@
-name: Node.js CI/CD on  Linux
+name: Node.js CI/CD on Amazon Linux
 
 on:
   push:
@@ -16,7 +16,7 @@ jobs:
           username: ${{ secrets.USERNAME }}
           key: ${{ secrets.SSH_KEY }}
           script: |
-            cd /your/project/path
+            cd /home/ubuntu/ayucan
             git pull origin main
             npm install
-            pm2 restart all
+            pm2 restart ayucan-backend
