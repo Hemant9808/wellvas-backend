@@ -17,11 +17,15 @@ const createOrder = async(req, res) => {
         // return;
       }
     
+      const isCod = paymentMethod === 'cod';
       const order = new Order({
         user: req.user._id,
         items,
         shippingAddress,
-        paymentMethod : paymentMethod || "upi",
+        paymentResult: {
+          paymentMethod: isCod ? 'cod' : 'online',
+          paymentStatus: 'not-paid'
+        },
         taxPrice,
         shippingPrice,
         totalPrice,
@@ -34,18 +38,39 @@ const createOrder = async(req, res) => {
 
     
       const createdOrder = await order.save();
-        // Clear user's cart
-    const cart = await Cart.findOne({ userId: req.user._id });
+      // Clear user's cart
+      const cart = await Cart.findOne({ userId: req.user._id });
 
-    if (cart) {
-      cart.items = [];
-      cart.totalItems = 0;
-      cart.totalPrice = 0;
-      cart.appliedCoupon = null;
-      cart.updatedAt = new Date();
+      if (cart) {
+        cart.items = [];
+        cart.totalItems = 0;
+        cart.totalPrice = 0;
+        cart.appliedCoupon = null;
+        cart.updatedAt = new Date();
 
-      await cart.save();
-    }
+        await cart.save();
+      }
+
+      // Automatically send premium invoice email to COD customers immediately!
+      if (createdOrder.authorised && createdOrder.paymentResult?.paymentMethod === 'cod') {
+        try {
+          const populatedOrder = await Order.findById(createdOrder._id).populate('user', 'firstName lastName email');
+          if (populatedOrder && populatedOrder.user) {
+            const userName = `${populatedOrder.user.firstName} ${populatedOrder.user.lastName}`;
+            const orderDetails = {
+              razorpay_order_id: "COD-" + populatedOrder._id.toString().slice(-8).toUpperCase(),
+              razorpay_payment_id: "N/A (Cash on Delivery)",
+              totalPrice: populatedOrder.totalPrice,
+              paymentMethod: "cod",
+              createdAt: populatedOrder.createdAt
+            };
+            await sendOrderConfirmationEmail(populatedOrder.user.email, userName, orderDetails);
+            console.log("COD Order confirmation email sent successfully to", populatedOrder.user.email);
+          }
+        } catch (emailError) {
+          console.error("Error sending COD order confirmation email:", emailError);
+        }
+      }
 
       res.status(201).json({success:true,createdOrder});
       
@@ -273,17 +298,29 @@ const getAllOrders = async (req, res) => {
     const limit = parseInt(req.query.limit) || 10;
     const skip = (page - 1) * limit;
 
-    // Delete only unauthorized orders that are older than 2 hours (stale checkout sessions)
-    const twoHoursAgo = new Date(Date.now() - 2 * 60 * 60 * 1000);
-    await Order.deleteMany({ authorised: false, createdAt: { $lt: twoHoursAgo } });
+    // Get filter parameter: 'completed' (default), 'abandoned', or 'all'
+    const filterType = req.query.filter || 'completed';
 
-    const orders = await Order.find({authorised:true})
+    // Delete only unauthorized orders that are older than 48 hours (abandoned checkouts window)
+    const retentionCutoff = new Date(Date.now() - 48 * 60 * 60 * 1000);
+    await Order.deleteMany({ authorised: false, createdAt: { $lt: retentionCutoff } });
+
+    let query = {};
+    if (filterType === 'completed') {
+      query.authorised = true;
+    } else if (filterType === 'abandoned') {
+      query.authorised = false;
+    } else if (filterType === 'all') {
+      // Return both
+    }
+
+    const orders = await Order.find(query)
       .populate('user', 'name email firstName lastName phone')
       .sort({ createdAt: -1 })
       .skip(skip)
       .limit(limit);
 
-    const total = await Order.countDocuments();
+    const total = await Order.countDocuments(query);
     const totalPages = Math.ceil(total / limit);
 
     res.json({
@@ -338,25 +375,25 @@ const getOrderStatistics = async (req, res) => {
     const lastMonth = new Date();
     lastMonth.setMonth(lastMonth.getMonth() - 1);
 
-    // Get order counts
+    // Get order counts (only authorised orders!)
     const [todayOrders, lastWeekOrders, lastMonthOrders] = await Promise.all([
-      Order.countDocuments({ createdAt: { $gte: today } }),
-      Order.countDocuments({ createdAt: { $gte: lastWeek } }),
-      Order.countDocuments({ createdAt: { $gte: lastMonth } })
+      Order.countDocuments({ authorised: true, createdAt: { $gte: today } }),
+      Order.countDocuments({ authorised: true, createdAt: { $gte: lastWeek } }),
+      Order.countDocuments({ authorised: true, createdAt: { $gte: lastMonth } })
     ]);
 
-    // Get sales data
+    // Get sales data (only authorised orders!)
     const [todaySales, lastWeekSales, lastMonthSales] = await Promise.all([
       Order.aggregate([
-        { $match: { createdAt: { $gte: today } } },
+        { $match: { authorised: true, createdAt: { $gte: today } } },
         { $group: { _id: null, total: { $sum: "$totalPrice" } } }
       ]),
       Order.aggregate([
-        { $match: { createdAt: { $gte: lastWeek } } },
+        { $match: { authorised: true, createdAt: { $gte: lastWeek } } },
         { $group: { _id: null, total: { $sum: "$totalPrice" } } }
       ]),
       Order.aggregate([
-        { $match: { createdAt: { $gte: lastMonth } } },
+        { $match: { authorised: true, createdAt: { $gte: lastMonth } } },
         { $group: { _id: null, total: { $sum: "$totalPrice" } } }
       ])
     ]);
@@ -379,6 +416,72 @@ const getOrderStatistics = async (req, res) => {
   }
 };
 
+// Automatic background recovery job to email abandoned checkouts
+const sendAbandonedCheckoutRecoveries = async () => {
+  try {
+    // Find all orders that are:
+    // 1. Incomplete / Unpaid: authorised is false
+    // 2. Created at least 30 minutes ago (to give them time to pay)
+    // 3. Created less than 48 hours ago (so it's not stale/deleted)
+    // 4. Have NOT received a recovery email yet: recoveryEmailSent is not true
+    const thirtyMinutesAgo = new Date(Date.now() - 30 * 60 * 1000);
+    const fortyEightHoursAgo = new Date(Date.now() - 48 * 60 * 60 * 1000);
+
+    const abandonedOrders = await Order.find({
+      authorised: false,
+      recoveryEmailSent: { $ne: true },
+      createdAt: { $gte: fortyEightHoursAgo, $lte: thirtyMinutesAgo }
+    }).populate('user', 'firstName lastName email');
+
+    console.log(`[Recovery Cron] Found ${abandonedOrders.length} potential checkout drop-offs to process`);
+
+    let sentCount = 0;
+    for (const order of abandonedOrders) {
+      if (order.user && order.user.email) {
+        try {
+          const userName = `${order.user.firstName} ${order.user.lastName}`;
+          
+          // Extract product names
+          const productList = order.items
+            ?.map(item => item.productId?.name)
+            .filter(Boolean);
+          
+          let productDisplay = 'Ayurvedic wellness products';
+          if (productList && productList.length > 0) {
+            if (productList.length === 1) {
+              productDisplay = `"${productList[0]}"`;
+            } else if (productList.length === 2) {
+              productDisplay = `"${productList[0]}" and "${productList[1]}"`;
+            } else {
+              productDisplay = `"${productList[0]}" and other items`;
+            }
+          }
+
+          // Recovery link directing back to storefront
+          const recoveryLink = `https://ayucan.com/checkout?recover=${order._id}`;
+          
+          const { sendCheckoutRecoveryEmail } = require('../utils/nodemailer');
+          await sendCheckoutRecoveryEmail(order.user.email, userName, productDisplay, order.totalPrice, recoveryLink);
+          
+          // Mark recovery email as sent
+          order.recoveryEmailSent = true;
+          await order.save();
+          
+          sentCount++;
+          console.log(`[Recovery Cron] Sent recovery email successfully to ${order.user.email} for order: ${order._id}`);
+        } catch (emailError) {
+          console.error(`[Recovery Cron] Error sending recovery email for order ${order._id}:`, emailError);
+        }
+      }
+    }
+    
+    return sentCount;
+  } catch (error) {
+    console.error('[Recovery Cron] Critical error in recovery task:', error);
+    return 0;
+  }
+};
+
 
 module.exports = {
   createOrder,
@@ -388,4 +491,5 @@ module.exports = {
   getMyOrders,
   getAllOrders,
   getOrderStatistics,
+  sendAbandonedCheckoutRecoveries,
 };

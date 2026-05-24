@@ -79,6 +79,21 @@ cron.schedule('*/5 * * * *', async () => {
   }
 });
 
+const { sendAbandonedCheckoutRecoveries } = require('./api/controllers/OrderController');
+
+// Automatically process and recover abandoned checkouts every 30 minutes
+cron.schedule('*/30 * * * *', async () => {
+  try {
+    console.log('[Cron Job] Initiating scheduled abandoned checkout recovery check...');
+    const sentCount = await sendAbandonedCheckoutRecoveries();
+    if (sentCount > 0) {
+      console.log(`[Cron Job] Successfully recovered ${sentCount} abandoned checkout leads via automated emails`);
+    }
+  } catch (error) {
+    console.error('[Cron Job] Error in abandoned checkout recovery cron:', error);
+  }
+});
+
 // cron.schedule('* * * * *', () => {
 //   console.log('Running task every minute');
 //   axios.get('https://medimart-nayg.onrender.com/keep-alive')

@@ -199,4 +199,86 @@ const sendOrderConfirmationEmail = async (userEmail, userName, orderDetails) => 
   });
 };
 
-module.exports = { sendEmail, sendOTPEmail, sendOrderConfirmationEmail };
+// Function to send abandoned checkout recovery email
+const sendCheckoutRecoveryEmail = async (userEmail, userName, productDisplay, totalPrice, recoveryLink) => {
+  const subject = 'Recover Your Cart - Complete Your Journey with Ayucan';
+
+  const html = `
+    <div style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; background-color: #FDFBF7; padding: 40px 20px; margin: 0; min-height: 100%;">
+      <table align="center" border="0" cellpadding="0" cellspacing="0" width="100%" style="max-width: 600px; background-color: #ffffff; border-radius: 24px; overflow: hidden; border: 1px solid #F2ECE7; box-shadow: 0 10px 30px rgba(42,59,40,0.05); text-align: left; margin: 0 auto;">
+        <!-- Header -->
+        <tr>
+          <td style="background-color: #2A3B28; padding: 40px; text-align: center; border-bottom: 4px solid #C17C3A;">
+            <h1 style="color: #FDFBF7; font-family: 'Georgia', serif; font-size: 28px; font-weight: bold; letter-spacing: 4px; margin: 0; text-transform: uppercase;">AYUCAN</h1>
+            <p style="color: #C17C3A; font-size: 11px; font-weight: bold; letter-spacing: 2px; text-transform: uppercase; margin: 10px 0 0 0;">Premium Ayurvedic Wellness</p>
+          </td>
+        </tr>
+        
+        <!-- Content Body -->
+        <tr>
+          <td style="padding: 40px 30px; background-color: #ffffff;">
+            <!-- Recovery Greeting -->
+            <div style="background-color: #FDFBF7; border-left: 4px solid #C17C3A; padding: 20px; border-radius: 12px; margin-bottom: 30px;">
+              <h2 style="color: #2A3B28; font-family: 'Georgia', serif; font-size: 18px; font-weight: bold; margin: 0 0 10px 0;">🌸 Complete Your Wellness Order</h2>
+              <p style="color: #2A3B28; font-size: 14px; margin: 0; font-weight: 600;">Dear ${userName || 'Wellness Seeker'},</p>
+              <p style="color: #715036; font-size: 13px; line-height: 1.6; margin: 8px 0 0 0;">
+                We noticed you started checking out on our website but couldn't complete the payment for your chosen Ayurvedic items. Your custom selected wellness routine is still saved for you!
+              </p>
+            </div>
+
+            <!-- Abandoned Cart Summary Card -->
+            <h3 style="color: #2A3B28; font-family: 'Georgia', serif; font-size: 16px; font-weight: bold; margin: 0 0 15px 0; border-bottom: 1px solid #F2ECE7; padding-bottom: 10px;">Cart Summary</h3>
+            
+            <table border="0" cellpadding="0" cellspacing="0" width="100%" style="margin-bottom: 30px; font-size: 13px; line-height: 1.8;">
+              <tr style="background-color: #FDFBF7;">
+                <td style="padding: 10px; color: #715036; font-weight: bold; border-bottom: 1px solid #F2ECE7; width: 40%;">Items in Cart</td>
+                <td style="padding: 10px; color: #2A3B28; font-weight: bold; border-bottom: 1px solid #F2ECE7;">${productDisplay || 'Ayurvedic Wellness Products'}</td>
+              </tr>
+              <tr>
+                <td style="padding: 10px; color: #715036; font-weight: bold; border-bottom: 1px solid #F2ECE7;">Cart Value</td>
+                <td style="padding: 10px; color: #C17C3A; font-weight: bold; border-bottom: 1px solid #F2ECE7; font-size: 15px;">₹${totalPrice}</td>
+              </tr>
+            </table>
+
+            <!-- Call to Actions -->
+            <div style="text-align: center; margin: 30px 0;">
+              <a href="${recoveryLink || 'https://ayucan.com/checkout'}" style="background-color: #2A3B28; color: #FDFBF7; font-family: 'Georgia', serif; font-size: 14px; font-weight: bold; letter-spacing: 1px; text-decoration: none; padding: 15px 30px; border-radius: 30px; display: inline-block; box-shadow: 0 4px 10px rgba(42,59,40,0.15); border-bottom: 3px solid #C17C3A;">
+                Complete Your Purchase
+              </a>
+            </div>
+
+            <!-- Alternative / Support -->
+            <div style="background-color: #FDFBF7; border: 1px solid #F2ECE7; border-radius: 16px; padding: 20px; margin-bottom: 20px; font-size: 12px; line-height: 1.6; color: #715036;">
+              <p style="margin: 0 0 10px 0; font-weight: bold; color: #2A3B28;">💡 Prefer Cash on Delivery (COD)?</p>
+              <p style="margin: 0;">
+                If you experienced technical issues with the payment window or prefer to pay at your doorstep, simply reply directly to this email or call our support team. We'd be happy to convert this into a Cash on Delivery order and ship it immediately!
+              </p>
+            </div>
+
+            <p style="color: #715036; font-size: 11px; text-align: center; margin: 30px 0 0 0; line-height: 1.5; font-style: italic;">
+              We look forward to accompanying you on your natural healing and wellness journey.
+            </p>
+          </td>
+        </tr>
+        
+        <!-- Footer -->
+        <tr>
+          <td style="background-color: #2A3B28; padding: 30px; text-align: center; border-top: 1px solid #F2ECE7;">
+            <p style="color: #A0B09E; font-size: 11px; line-height: 1.6; margin: 0;">
+              © ${new Date().getFullYear()} Ayucan Healthcare Private Limited. All rights reserved.<br />
+              Delivering lab-tested, pure, next-generation organic wellness.
+            </p>
+          </td>
+        </tr>
+      </table>
+    </div>
+  `;
+
+  await sendEmail({
+    email: userEmail,
+    subject,
+    html
+  });
+};
+
+module.exports = { sendEmail, sendOTPEmail, sendOrderConfirmationEmail, sendCheckoutRecoveryEmail };

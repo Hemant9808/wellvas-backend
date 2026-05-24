@@ -147,6 +147,10 @@ const orderSchema = new Schema(
       type: Number,
       default: 0,
     },
+    recoveryEmailSent: {
+      type: Boolean,
+      default: false,
+    },
 
     createdAt: {
       type: Date,
