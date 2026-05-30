@@ -1,7 +1,5 @@
 // utils/email.js
 const nodemailer = require('nodemailer');
-const { emailTemp, temp2, temp4, old, home, home2, home3 } = require('./abc');
-const { template, template2, emailVerificationTemplate, lotteryPurchaseTemplate, winnerAnnouncementTemplate, newsletterSubscriptionTemplate, passwordResetTemplate, lotteryPurchaseTemplate1, temp11, temp12 } = require('./constant');
 
 const sendEmail = async (options) => {
   // 1. Create a transporter object for sending emails
@@ -9,12 +7,10 @@ const sendEmail = async (options) => {
     service: 'Gmail',
     host: 'smtp.gmail.com',
     port: 465,
-    secure: true, // or any other email service provider
+    secure: true,
     auth: {
       user: "ayucanhealthcare@gmail.com",
       pass: "uzxeaehplrigbcef",
-      // user: "kumarhemantk64@gmail.com",
-      // pass: "sikhwhemlxlexvkw"
     },
     tls: {
       rejectUnauthorized: false
@@ -26,38 +22,37 @@ const sendEmail = async (options) => {
     from: "hemant@adirayglobal.com",
     to: options.email || "hemant27134@gmail.com",
     subject: options.subject || "Ayucan Notification",
-    html: options.html || options.message || temp12
+    html: options.html
   };
 
   // 3. Send the email
   await transporter.sendMail(mailOptions);
 };
 
-// Function to send OTP email
+// Function to send OTP email (Minimalist UI)
 const sendOTPEmail = async (email, otp, purpose = 'signup') => {
   const subject = purpose === 'signup'
-    ? 'Verify Your Email - Ayucan Signup'
+    ? 'Verify Your Email - Ayucan'
     : 'Password Reset OTP - Ayucan';
 
   const html = `
-    <div style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; background-color: #FDFBF7; padding: 40px 20px; text-align: center; margin: 0; min-height: 100%;">
-      <table align="center" border="0" cellpadding="0" cellspacing="0" width="100%" style="max-width: 600px; background-color: #ffffff; border-radius: 24px; overflow: hidden; border: 1px solid #F2ECE7; box-shadow: 0 10px 30px rgba(42,59,40,0.05); text-align: left; margin: 0 auto;">
-        <!-- Header -->
+    <div style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; background-color: #ffffff; color: #333333; margin: 0; padding: 40px 20px;">
+      <table align="center" border="0" cellpadding="0" cellspacing="0" width="100%" style="max-width: 560px; margin: 0 auto; background-color: #ffffff; text-align: left;">
+        <!-- Logo Header -->
         <tr>
-          <td style="background-color: #2A3B28; padding: 40px; text-align: center; border-bottom: 4px solid #C17C3A;">
-            <h1 style="color: #FDFBF7; font-family: 'Georgia', serif; font-size: 28px; font-weight: bold; letter-spacing: 4px; margin: 0; text-transform: uppercase;">AYUCAN</h1>
-            <p style="color: #C17C3A; font-size: 11px; font-weight: bold; letter-spacing: 2px; text-transform: uppercase; margin: 10px 0 0 0;">Premium Ayurvedic Wellness</p>
+          <td style="padding: 20px 0 30px 0; text-align: center;">
+            <h1 style="font-family: 'Times New Roman', Georgia, serif; font-size: 24px; font-weight: normal; letter-spacing: 5px; color: #2A3B28; margin: 0; text-transform: uppercase; display: inline-block;">AYUCAN</h1>
+            <p style="font-size: 10px; color: #C17C3A; letter-spacing: 2px; text-transform: uppercase; margin: 5px 0 0 0; font-weight: 500;">Premium Ayurvedic Wellness</p>
           </td>
         </tr>
         
-        <!-- Content -->
         <tr>
-          <td style="padding: 40px 30px; background-color: #ffffff;">
-            <h2 style="color: #2A3B28; font-family: 'Georgia', serif; font-size: 20px; font-weight: bold; margin: 0 0 20px 0; text-align: center;">
+          <td style="padding: 30px 0; border-top: 1px solid #eaeaea;">
+            <h2 style="font-family: 'Times New Roman', Georgia, serif; font-size: 18px; font-weight: normal; color: #2A3B28; margin: 0 0 15px 0;">
               ${purpose === 'signup' ? 'Verify Your Account' : 'Reset Your Password'}
             </h2>
             
-            <p style="color: #715036; font-size: 14px; line-height: 1.6; margin: 0 0 30px 0; text-align: center;">
+            <p style="font-size: 13px; line-height: 1.6; color: #666666; margin: 0 0 25px 0;">
               ${purpose === 'signup' 
                 ? 'Welcome to the wellness family! Please enter the secure verification code below to complete your Ayucan registration. This code is active for 10 minutes.'
                 : 'We received a request to reset your account password. Please enter the secure verification code below. This code is active for 10 minutes.'
@@ -66,12 +61,12 @@ const sendOTPEmail = async (email, otp, purpose = 'signup') => {
             
             <!-- OTP Container -->
             <div style="text-align: center; margin: 30px 0;">
-              <div style="background-color: #FDFBF7; border: 2px dashed #C17C3A; border-radius: 16px; padding: 20px 40px; display: inline-block;">
-                <span style="font-family: 'Courier New', Courier, monospace; font-size: 38px; font-weight: bold; letter-spacing: 8px; color: #2A3B28;">${otp}</span>
+              <div style="background-color: #FDFBF7; border: 1px solid #E2ECE1; border-radius: 8px; padding: 15px 30px; display: inline-block;">
+                <span style="font-family: Menlo, Monaco, Consolas, Courier, monospace; font-size: 32px; font-weight: bold; letter-spacing: 6px; color: #2A3B28;">${otp}</span>
               </div>
             </div>
             
-            <p style="color: #715036; font-size: 12px; line-height: 1.6; margin: 30px 0 0 0; text-align: center; font-style: italic;">
+            <p style="font-size: 11px; line-height: 1.6; color: #999999; margin: 30px 0 0 0; text-align: center; font-style: italic;">
               If you did not request this verification code, you can safely ignore this email. Your account security is preserved.
             </p>
           </td>
@@ -79,8 +74,8 @@ const sendOTPEmail = async (email, otp, purpose = 'signup') => {
         
         <!-- Footer -->
         <tr>
-          <td style="background-color: #2A3B28; padding: 30px; text-align: center; border-top: 1px solid #F2ECE7;">
-            <p style="color: #A0B09E; font-size: 11px; line-height: 1.6; margin: 0;">
+          <td style="padding: 30px 0; border-top: 1px solid #eaeaea; text-align: center;">
+            <p style="font-size: 10px; line-height: 1.6; color: #999999; margin: 0;">
               © ${new Date().getFullYear()} Ayucan Healthcare Private Limited. All rights reserved.<br />
               Delivering lab-tested, pure, next-generation organic wellness.
             </p>
@@ -97,92 +92,74 @@ const sendOTPEmail = async (email, otp, purpose = 'signup') => {
   });
 };
 
-// Function to send order confirmation email
+// Function to send order confirmation email (Minimalist UI)
 const sendOrderConfirmationEmail = async (userEmail, userName, orderDetails) => {
   const subject = 'Order Confirmation - Ayucan';
 
   const html = `
-    <div style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; background-color: #FDFBF7; padding: 40px 20px; margin: 0; min-height: 100%;">
-      <table align="center" border="0" cellpadding="0" cellspacing="0" width="100%" style="max-width: 600px; background-color: #ffffff; border-radius: 24px; overflow: hidden; border: 1px solid #F2ECE7; box-shadow: 0 10px 30px rgba(42,59,40,0.05); text-align: left; margin: 0 auto;">
-        <!-- Header -->
+    <div style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; background-color: #ffffff; color: #333333; margin: 0; padding: 40px 20px;">
+      <table align="center" border="0" cellpadding="0" cellspacing="0" width="100%" style="max-width: 560px; margin: 0 auto; background-color: #ffffff; text-align: left;">
+        <!-- Logo Header -->
         <tr>
-          <td style="background-color: #2A3B28; padding: 40px; text-align: center; border-bottom: 4px solid #C17C3A;">
-            <h1 style="color: #FDFBF7; font-family: 'Georgia', serif; font-size: 28px; font-weight: bold; letter-spacing: 4px; margin: 0; text-transform: uppercase;">AYUCAN</h1>
-            <p style="color: #C17C3A; font-size: 11px; font-weight: bold; letter-spacing: 2px; text-transform: uppercase; margin: 10px 0 0 0;">Premium Ayurvedic Wellness</p>
+          <td style="padding: 20px 0 30px 0; text-align: center;">
+            <h1 style="font-family: 'Times New Roman', Georgia, serif; font-size: 24px; font-weight: normal; letter-spacing: 5px; color: #2A3B28; margin: 0; text-transform: uppercase; display: inline-block;">AYUCAN</h1>
+            <p style="font-size: 10px; color: #C17C3A; letter-spacing: 2px; text-transform: uppercase; margin: 5px 0 0 0; font-weight: 500;">Premium Ayurvedic Wellness</p>
           </td>
         </tr>
         
         <!-- Content Body -->
         <tr>
-          <td style="padding: 40px 30px; background-color: #ffffff;">
-            <!-- Welcome Banner -->
-            <div style="background-color: #FDFBF7; border-left: 4px solid #C17C3A; padding: 20px; border-radius: 12px; margin-bottom: 30px;">
-              <h2 style="color: #2A3B28; font-family: 'Georgia', serif; font-size: 18px; font-weight: bold; margin: 0 0 10px 0;">✅ Order Successfully Placed!</h2>
-              <p style="color: #2A3B28; font-size: 14px; margin: 0; font-weight: 600;">Dear ${userName || 'Wellness Seeker'},</p>
-              <p style="color: #715036; font-size: 13px; line-height: 1.6; margin: 8px 0 0 0;">
-                Thank you for choosing Ayucan. We have successfully received your payment, and your journey to premium Ayurvedic wellness has officially begun!
-              </p>
-            </div>
+          <td style="padding: 30px 0; border-top: 1px solid #eaeaea;">
+            <h2 style="font-family: 'Times New Roman', Georgia, serif; font-size: 18px; font-weight: normal; color: #2A3B28; margin: 0 0 10px 0;">Order Confirmed</h2>
+            <p style="font-size: 13px; line-height: 1.6; color: #666666; margin: 0 0 25px 0;">
+              Dear ${userName || 'Wellness Seeker'},<br /><br />
+              Thank you for choosing Ayucan. We have successfully received your payment, and your journey to premium Ayurvedic wellness has officially begun!
+            </p>
 
             <!-- Billing Details Table -->
-            <h3 style="color: #2A3B28; font-family: 'Georgia', serif; font-size: 16px; font-weight: bold; margin: 0 0 15px 0; border-bottom: 1px solid #F2ECE7; padding-bottom: 10px;">Order Invoice</h3>
+            <h3 style="font-family: 'Times New Roman', Georgia, serif; font-size: 14px; font-weight: bold; color: #2A3B28; margin: 25px 0 10px 0; border-bottom: 1px solid #eaeaea; padding-bottom: 6px; text-transform: uppercase; letter-spacing: 1px;">Invoice Details</h3>
             
-            <table border="0" cellpadding="0" cellspacing="0" width="100%" style="margin-bottom: 30px; font-size: 13px; line-height: 1.8;">
-              <tr style="background-color: #FDFBF7;">
-                <td style="padding: 10px; color: #715036; font-weight: bold; border-bottom: 1px solid #F2ECE7; width: 40%;">Order ID</td>
-                <td style="padding: 10px; color: #2A3B28; font-weight: bold; border-bottom: 1px solid #F2ECE7; word-break: break-all;">${orderDetails.razorpay_order_id || 'N/A'}</td>
+            <table border="0" cellpadding="0" cellspacing="0" width="100%" style="margin-bottom: 25px; font-size: 12px; line-height: 2;">
+              <tr>
+                <td style="padding: 6px 0; color: #666666; width: 40%;">Order ID</td>
+                <td style="padding: 6px 0; color: #333333; font-weight: 600; word-break: break-all;">${orderDetails.razorpay_order_id || 'N/A'}</td>
               </tr>
               <tr>
-                <td style="padding: 10px; color: #715036; font-weight: bold; border-bottom: 1px solid #F2ECE7;">Payment ID</td>
-                <td style="padding: 10px; color: #2A3B28; border-bottom: 1px solid #F2ECE7; word-break: break-all;">${orderDetails.razorpay_payment_id || 'N/A'}</td>
-              </tr>
-              <tr style="background-color: #FDFBF7;">
-                <td style="padding: 10px; color: #715036; font-weight: bold; border-bottom: 1px solid #F2ECE7;">Total Price</td>
-                <td style="padding: 10px; color: #C17C3A; font-weight: bold; border-bottom: 1px solid #F2ECE7; font-size: 15px;">₹${orderDetails.totalPrice}</td>
+                <td style="padding: 6px 0; color: #666666;">Payment ID</td>
+                <td style="padding: 6px 0; color: #333333; word-break: break-all;">${orderDetails.razorpay_payment_id || 'N/A'}</td>
               </tr>
               <tr>
-                <td style="padding: 10px; color: #715036; font-weight: bold; border-bottom: 1px solid #F2ECE7;">Payment Method</td>
-                <td style="padding: 10px; color: #2A3B28; border-bottom: 1px solid #F2ECE7; text-transform: uppercase; font-weight: 500;">${orderDetails.paymentMethod || 'Prepaid'}</td>
+                <td style="padding: 6px 0; color: #666666;">Payment Method</td>
+                <td style="padding: 6px 0; color: #333333; text-transform: uppercase; font-weight: 500;">${orderDetails.paymentMethod || 'Prepaid'}</td>
               </tr>
-              <tr style="background-color: #FDFBF7;">
-                <td style="padding: 10px; color: #715036; font-weight: bold; border-bottom: 1px solid #F2ECE7;">Date Ordered</td>
-                <td style="padding: 10px; color: #2A3B28; border-bottom: 1px solid #F2ECE7;">${new Date(orderDetails.createdAt || Date.now()).toLocaleDateString('en-IN', { day: 'numeric', month: 'long', year: 'numeric' })}</td>
+              <tr>
+                <td style="padding: 6px 0; color: #666666;">Date Ordered</td>
+                <td style="padding: 6px 0; color: #333333;">${new Date(orderDetails.createdAt || Date.now()).toLocaleDateString('en-IN', { day: 'numeric', month: 'long', year: 'numeric' })}</td>
+              </tr>
+              <tr style="border-top: 1px solid #eaeaea;">
+                <td style="padding: 8px 0; color: #2A3B28; font-weight: bold; font-size: 13px;">Total Price</td>
+                <td style="padding: 8px 0; color: #C17C3A; font-weight: bold; font-size: 14px;">₹${orderDetails.totalPrice}</td>
               </tr>
             </table>
 
             <!-- Next Steps -->
-            <div style="background-color: #FDFBF7; border: 1px solid #F2ECE7; border-radius: 16px; padding: 25px; margin-bottom: 20px;">
-              <h3 style="color: #2A3B28; font-family: 'Georgia', serif; font-size: 15px; font-weight: bold; margin: 0 0 15px 0;">📦 What Happens Next?</h3>
-              <table border="0" cellpadding="0" cellspacing="0" width="100%" style="font-size: 12px; line-height: 1.7; color: #715036;">
-                <tr>
-                  <td style="vertical-align: top; padding: 5px 10px 5px 0; color: #C17C3A; font-size: 14px;">✦</td>
-                  <td style="padding: 5px 0;">Our specialists are preparing your custom herbal products for safe shipment.</td>
-                </tr>
-                <tr>
-                  <td style="vertical-align: top; padding: 5px 10px 5px 0; color: #C17C3A; font-size: 14px;">✦</td>
-                  <td style="padding: 5px 0;">Once dispatched, a tracking confirmation email will be sent containing your shipment number.</td>
-                </tr>
-                <tr>
-                  <td style="vertical-align: top; padding: 5px 10px 5px 0; color: #C17C3A; font-size: 14px;">✦</td>
-                  <td style="padding: 5px 0;">Expected delivery window across India: <strong>3-5 business days</strong>.</td>
-                </tr>
-                <tr>
-                  <td style="vertical-align: top; padding: 5px 10px 5px 0; color: #C17C3A; font-size: 14px;">✦</td>
-                  <td style="padding: 5px 0;">You can track real-time delivery progress inside your PWA Mobile App.</td>
-                </tr>
-              </table>
-            </div>
+            <h3 style="font-family: 'Times New Roman', Georgia, serif; font-size: 14px; font-weight: bold; color: #2A3B28; margin: 25px 0 10px 0; border-bottom: 1px solid #eaeaea; padding-bottom: 6px; text-transform: uppercase; letter-spacing: 1px;">What Happens Next</h3>
+            <ul style="font-size: 12px; line-height: 1.6; color: #666666; padding-left: 20px; margin: 0 0 25px 0;">
+              <li style="margin-bottom: 6px;">Our specialists are preparing your custom herbal products for safe shipment.</li>
+              <li style="margin-bottom: 6px;">Once dispatched, a tracking confirmation email will be sent containing your shipment number.</li>
+              <li style="margin-bottom: 6px;">Expected delivery window across India: <strong>3-5 business days</strong>.</li>
+            </ul>
 
-            <p style="color: #715036; font-size: 12px; text-align: center; margin: 30px 0 0 0; line-height: 1.5;">
-              If you have any questions or require custom Ayurvedic counseling, reply directly to this email to contact our wellness team.
+            <p style="font-size: 11px; line-height: 1.5; color: #999999; margin: 30px 0 0 0; text-align: center;">
+              If you have any questions or require custom Ayurvedic counseling, simply reply directly to this email to contact our wellness team.
             </p>
           </td>
         </tr>
         
         <!-- Footer -->
         <tr>
-          <td style="background-color: #2A3B28; padding: 30px; text-align: center; border-top: 1px solid #F2ECE7;">
-            <p style="color: #A0B09E; font-size: 11px; line-height: 1.6; margin: 0;">
+          <td style="padding: 30px 0; border-top: 1px solid #eaeaea; text-align: center;">
+            <p style="font-size: 10px; line-height: 1.6; color: #999999; margin: 0;">
               © ${new Date().getFullYear()} Ayucan Healthcare Private Limited. All rights reserved.<br />
               Delivering lab-tested, pure, next-generation organic wellness.
             </p>
@@ -199,72 +176,59 @@ const sendOrderConfirmationEmail = async (userEmail, userName, orderDetails) => 
   });
 };
 
-// Function to send abandoned checkout recovery email
+// Function to send abandoned checkout recovery email (Minimalist UI)
 const sendCheckoutRecoveryEmail = async (userEmail, userName, productDisplay, totalPrice, recoveryLink) => {
   const subject = 'Recover Your Cart - Complete Your Journey with Ayucan';
 
   const html = `
-    <div style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; background-color: #FDFBF7; padding: 40px 20px; margin: 0; min-height: 100%;">
-      <table align="center" border="0" cellpadding="0" cellspacing="0" width="100%" style="max-width: 600px; background-color: #ffffff; border-radius: 24px; overflow: hidden; border: 1px solid #F2ECE7; box-shadow: 0 10px 30px rgba(42,59,40,0.05); text-align: left; margin: 0 auto;">
-        <!-- Header -->
+    <div style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; background-color: #ffffff; color: #333333; margin: 0; padding: 40px 20px;">
+      <table align="center" border="0" cellpadding="0" cellspacing="0" width="100%" style="max-width: 560px; margin: 0 auto; background-color: #ffffff; text-align: left;">
+        <!-- Logo Header -->
         <tr>
-          <td style="background-color: #2A3B28; padding: 40px; text-align: center; border-bottom: 4px solid #C17C3A;">
-            <h1 style="color: #FDFBF7; font-family: 'Georgia', serif; font-size: 28px; font-weight: bold; letter-spacing: 4px; margin: 0; text-transform: uppercase;">AYUCAN</h1>
-            <p style="color: #C17C3A; font-size: 11px; font-weight: bold; letter-spacing: 2px; text-transform: uppercase; margin: 10px 0 0 0;">Premium Ayurvedic Wellness</p>
+          <td style="padding: 20px 0 30px 0; text-align: center;">
+            <h1 style="font-family: 'Times New Roman', Georgia, serif; font-size: 24px; font-weight: normal; letter-spacing: 5px; color: #2A3B28; margin: 0; text-transform: uppercase; display: inline-block;">AYUCAN</h1>
+            <p style="font-size: 10px; color: #C17C3A; letter-spacing: 2px; text-transform: uppercase; margin: 5px 0 0 0; font-weight: 500;">Premium Ayurvedic Wellness</p>
           </td>
         </tr>
         
         <!-- Content Body -->
         <tr>
-          <td style="padding: 40px 30px; background-color: #ffffff;">
-            <!-- Recovery Greeting -->
-            <div style="background-color: #FDFBF7; border-left: 4px solid #C17C3A; padding: 20px; border-radius: 12px; margin-bottom: 30px;">
-              <h2 style="color: #2A3B28; font-family: 'Georgia', serif; font-size: 18px; font-weight: bold; margin: 0 0 10px 0;">🌸 Complete Your Wellness Order</h2>
-              <p style="color: #2A3B28; font-size: 14px; margin: 0; font-weight: 600;">Dear ${userName || 'Wellness Seeker'},</p>
-              <p style="color: #715036; font-size: 13px; line-height: 1.6; margin: 8px 0 0 0;">
-                We noticed you started checking out on our website but couldn't complete the payment for your chosen Ayurvedic items. Your custom selected wellness routine is still saved for you!
-              </p>
-            </div>
+          <td style="padding: 30px 0; border-top: 1px solid #eaeaea;">
+            <h2 style="font-family: 'Times New Roman', Georgia, serif; font-size: 18px; font-weight: normal; color: #2A3B28; margin: 0 0 10px 0;">🌸 Complete Your Wellness Order</h2>
+            <p style="font-size: 13px; line-height: 1.6; color: #666666; margin: 0 0 20px 0;">
+              Dear ${userName || 'Wellness Seeker'},<br /><br />
+              We noticed you started checking out on our website but couldn't complete the payment for your chosen Ayurvedic items. Your custom selected wellness routine is still saved for you!
+            </p>
 
-            <!-- Abandoned Cart Summary Card -->
-            <h3 style="color: #2A3B28; font-family: 'Georgia', serif; font-size: 16px; font-weight: bold; margin: 0 0 15px 0; border-bottom: 1px solid #F2ECE7; padding-bottom: 10px;">Cart Summary</h3>
-            
-            <table border="0" cellpadding="0" cellspacing="0" width="100%" style="margin-bottom: 30px; font-size: 13px; line-height: 1.8;">
-              <tr style="background-color: #FDFBF7;">
-                <td style="padding: 10px; color: #715036; font-weight: bold; border-bottom: 1px solid #F2ECE7; width: 40%;">Items in Cart</td>
-                <td style="padding: 10px; color: #2A3B28; font-weight: bold; border-bottom: 1px solid #F2ECE7;">${productDisplay || 'Ayurvedic Wellness Products'}</td>
+            <table border="0" cellpadding="0" cellspacing="0" width="100%" style="margin-bottom: 25px; font-size: 12px; line-height: 2;">
+              <tr style="border-bottom: 1px solid #eaeaea;">
+                <td style="padding: 6px 0; color: #666666; width: 40%;">Items in Cart</td>
+                <td style="padding: 6px 0; color: #333333; font-weight: 600;">${productDisplay || 'Ayurvedic Wellness Products'}</td>
               </tr>
               <tr>
-                <td style="padding: 10px; color: #715036; font-weight: bold; border-bottom: 1px solid #F2ECE7;">Cart Value</td>
-                <td style="padding: 10px; color: #C17C3A; font-weight: bold; border-bottom: 1px solid #F2ECE7; font-size: 15px;">₹${totalPrice}</td>
+                <td style="padding: 8px 0; color: #2A3B28; font-weight: bold; font-size: 13px;">Cart Value</td>
+                <td style="padding: 8px 0; color: #C17C3A; font-weight: bold; font-size: 14px;">₹${totalPrice}</td>
               </tr>
             </table>
 
-            <!-- Call to Actions -->
-            <div style="text-align: center; margin: 30px 0;">
-              <a href="${recoveryLink || 'https://ayucan.com/checkout'}" style="background-color: #2A3B28; color: #FDFBF7; font-family: 'Georgia', serif; font-size: 14px; font-weight: bold; letter-spacing: 1px; text-decoration: none; padding: 15px 30px; border-radius: 30px; display: inline-block; box-shadow: 0 4px 10px rgba(42,59,40,0.15); border-bottom: 3px solid #C17C3A;">
+            <!-- Complete Button -->
+            <div style="text-align: center; margin: 25px 0;">
+              <a href="${recoveryLink || 'https://ayucan.com/checkout'}" style="background-color: #2A3B28; color: #ffffff; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; font-size: 13px; font-weight: bold; text-decoration: none; padding: 12px 28px; border-radius: 6px; display: inline-block; tracking-wider: 1px; cursor: pointer;">
                 Complete Your Purchase
               </a>
             </div>
 
             <!-- Alternative / Support -->
-            <div style="background-color: #FDFBF7; border: 1px solid #F2ECE7; border-radius: 16px; padding: 20px; margin-bottom: 20px; font-size: 12px; line-height: 1.6; color: #715036;">
-              <p style="margin: 0 0 10px 0; font-weight: bold; color: #2A3B28;">💡 Prefer Cash on Delivery (COD)?</p>
-              <p style="margin: 0;">
-                If you experienced technical issues with the payment window or prefer to pay at your doorstep, simply reply directly to this email or call our support team. We'd be happy to convert this into a Cash on Delivery order and ship it immediately!
-              </p>
-            </div>
-
-            <p style="color: #715036; font-size: 11px; text-align: center; margin: 30px 0 0 0; line-height: 1.5; font-style: italic;">
-              We look forward to accompanying you on your natural healing and wellness journey.
+            <p style="font-size: 11px; line-height: 1.6; color: #999999; margin: 20px 0 0 0; background-color: #fafafa; border-radius: 6px; padding: 12px; font-style: italic;">
+              <strong>💡 Prefer Cash on Delivery (COD)?</strong> If you experienced technical issues with the payment window or prefer to pay at your doorstep, simply reply directly to this email or call our support team. We'd be happy to convert this into a Cash on Delivery order and ship it immediately!
             </p>
           </td>
         </tr>
         
         <!-- Footer -->
         <tr>
-          <td style="background-color: #2A3B28; padding: 30px; text-align: center; border-top: 1px solid #F2ECE7;">
-            <p style="color: #A0B09E; font-size: 11px; line-height: 1.6; margin: 0;">
+          <td style="padding: 30px 0; border-top: 1px solid #eaeaea; text-align: center;">
+            <p style="font-size: 10px; line-height: 1.6; color: #999999; margin: 0;">
               © ${new Date().getFullYear()} Ayucan Healthcare Private Limited. All rights reserved.<br />
               Delivering lab-tested, pure, next-generation organic wellness.
             </p>
