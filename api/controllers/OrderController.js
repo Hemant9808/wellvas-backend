@@ -2,7 +2,7 @@ const Cart = require('../models/CartModel');
 const Order = require('../models/OrderModel');
 const User = require('../models/UserModel');
 const Product = require('../models/ProductModel');
-const { sendOrderConfirmationEmail } = require('../utils/nodemailer');
+const { sendOrderConfirmationEmail, generateInvoicePDF } = require('../utils/nodemailer');
 
 const createOrder = async(req, res) => {
     
@@ -616,6 +616,38 @@ const confirmAbandonedOrderAsPaid = async (req, res) => {
   }
 };
 
+const downloadOrderInvoice = async (req, res) => {
+  try {
+    const order = await Order.findById(req.params.id)
+      .populate('user', 'firstName lastName email')
+      .populate('items.productId', 'name price');
+    
+    if (!order) {
+      return res.status(404).json({ message: "Order not found" });
+    }
+    
+    const userName = `${order.user?.firstName || 'Wellness'} ${order.user?.lastName || 'Seeker'}`;
+    
+    // Generate PDF Buffer
+    const pdfBuffer = await generateInvoicePDF(order, userName);
+    
+    // Compute invoice number
+    const createdAt = order.createdAt || Date.now();
+    const orderYear = new Date(createdAt).getFullYear();
+    const rawId = order._id || order.razorpay_order_id || 'order';
+    const uniqueSuffix = rawId.toString().slice(-8).toUpperCase().replace(/[^A-Z0-9]/g, 'X');
+    const invoiceNumber = `AYU-${orderYear}-${uniqueSuffix || 'XXXX'}`;
+    
+    // Stream response
+    res.setHeader('Content-Type', 'application/pdf');
+    res.setHeader('Content-Disposition', `attachment; filename="invoice_${invoiceNumber}.pdf"`);
+    res.send(pdfBuffer);
+    
+  } catch (error) {
+    console.error("Error downloading order invoice:", error);
+    res.status(500).json({ message: "Internal server error" });
+  }
+};
 
 module.exports = {
   createOrder,
@@ -628,4 +660,5 @@ module.exports = {
   sendAbandonedCheckoutRecoveries,
   confirmAbandonedOrderAsCod,
   confirmAbandonedOrderAsPaid,
+  downloadOrderInvoice,
 };

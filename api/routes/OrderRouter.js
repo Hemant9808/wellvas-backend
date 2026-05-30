@@ -1,6 +1,6 @@
 
 const express = require('express');
-const { createOrder, getAllOrders, getMyOrders, updateOrderToPaid, updateOrderStatus, getOrderStatistics, getOrderById, confirmAbandonedOrderAsCod, confirmAbandonedOrderAsPaid } = require('../controllers/OrderController');
+const { createOrder, getAllOrders, getMyOrders, updateOrderToPaid, updateOrderStatus, getOrderStatistics, getOrderById, confirmAbandonedOrderAsCod, confirmAbandonedOrderAsPaid, downloadOrderInvoice } = require('../controllers/OrderController');
 const { protect } = require('../middlewares/authMiddleware');
 const router = express.Router()
 
@@ -13,6 +13,7 @@ router.post('/updateOrderStatus/',updateOrderStatus);
 router.post('/confirmAbandonedOrder',confirmAbandonedOrderAsCod);
 router.post('/confirmAbandonedOrderAsPaid',confirmAbandonedOrderAsPaid);
 router.get('/statistics',protect,getOrderStatistics);
+router.get('/:id/invoice', downloadOrderInvoice);
 //get order by id
 router.get('/:id',protect,getOrderById);
  

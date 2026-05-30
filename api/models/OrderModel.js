@@ -23,6 +23,10 @@ const productSchema = new Schema(
       required: true,
     },
 
+    discountPrice: {
+      type: Number,
+    },
+
     brand: {
       type: String,
       required: false,
@@ -46,6 +50,9 @@ const orderItemSchema = new Schema(
     price: {
       type: Number,
       required: true,
+    },
+    discountPrice: {
+      type: Number,
     },
   },
   { _id: false }
