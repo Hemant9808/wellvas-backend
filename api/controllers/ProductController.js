@@ -281,11 +281,11 @@ const uploadImage = async (req, res) => {
     if (coverImage == null) {
       return res.send({ message: "coverImage is null " });
     }
-    if (!coverImage.url) {
-      return res.send({ message: "cover.url not found" });
+    if (!coverImage.secure_url && !coverImage.url) {
+      return res.send({ message: "cover image url not found" });
     }
     console.log("coverImage", coverImage);
-    return res.send({ coverImage: coverImage.url });
+    return res.send({ coverImage: coverImage.secure_url || coverImage.url });
   } catch (error) {
     console.log(error);
     res.send(error.message);
