@@ -258,56 +258,60 @@ const uploadImage = async (req, res) => {
       return res.status(400).send({ message: "No image file uploaded or parsed. Please check if file is sent as 'file' form field." });
     }
 
-    let fileToUpload = coverImageLocalPath;
-    let optimizedLocalPath = null;
+    // Ensure public/uploads directory exists
+    const uploadsDir = path.join(__dirname, '../../public/uploads');
+    if (!fs.existsSync(uploadsDir)) {
+      fs.mkdirSync(uploadsDir, { recursive: true });
+    }
 
+    const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
+    const parsedPath = path.parse(coverImageLocalPath);
+    
+    // We will generate the target webp filename
+    const targetFilename = `${parsedPath.name}-${uniqueSuffix}.webp`;
+    const targetPath = path.join(uploadsDir, targetFilename);
+
+    let finalFilename = targetFilename;
+    let uploadedSuccessfully = false;
+
+    // Try optimizing with sharp first
     try {
-      // Prepare optimized output path
-      const parsedPath = path.parse(coverImageLocalPath);
-      optimizedLocalPath = path.join(parsedPath.dir, `${parsedPath.name}-optimized.webp`);
-
-      // Compress and convert to next-gen WebP using sharp
       await sharp(coverImageLocalPath)
         .webp({ quality: 80 })
-        .toFile(optimizedLocalPath);
-
-      fileToUpload = optimizedLocalPath;
-      console.log("Sharp optimization succeeded:", optimizedLocalPath);
+        .toFile(targetPath);
+      uploadedSuccessfully = true;
+      console.log("Sharp optimization and local save succeeded:", targetPath);
     } catch (sharpError) {
-      console.error("Sharp optimization failed, falling back to original image file:", sharpError.message);
-      // Fallback: use original file if sharp fails
-      fileToUpload = coverImageLocalPath;
-      optimizedLocalPath = null;
+      console.error("Sharp optimization failed, copying original file:", sharpError.message);
+      // Fallback: copy original file
+      const fallbackFilename = `${parsedPath.name}-${uniqueSuffix}${parsedPath.ext}`;
+      const fallbackPath = path.join(uploadsDir, fallbackFilename);
+      
+      fs.copyFileSync(coverImageLocalPath, fallbackPath);
+      finalFilename = fallbackFilename;
+      uploadedSuccessfully = true;
     }
 
-    // Upload to Cloudinary
-    let coverImage;
-    try {
-      coverImage = await uploadOnCloudinary(fileToUpload);
-    } catch (cloudinaryError) {
-      return res.status(500).send({ message: `Cloudinary upload error: ${cloudinaryError.message}` });
-    }
-
-    // Clean up local files (original and optimized temporary)
+    // Clean up local temp file
     try {
       if (coverImageLocalPath && fs.existsSync(coverImageLocalPath)) {
         fs.unlinkSync(coverImageLocalPath);
-      }
-      if (optimizedLocalPath && fs.existsSync(optimizedLocalPath)) {
-        fs.unlinkSync(optimizedLocalPath);
       }
     } catch (cleanupErr) {
       console.error("Local temporary file cleanup error:", cleanupErr);
     }
 
-    if (coverImage == null) {
-      return res.status(500).send({ message: "Cloudinary upload returned null" });
+    if (!uploadedSuccessfully) {
+      return res.status(500).send({ message: "Failed to store the uploaded image on the server." });
     }
-    if (!coverImage.secure_url && !coverImage.url) {
-      return res.status(500).send({ message: "Cloudinary response did not contain secure_url or url" });
-    }
-    console.log("Uploaded image URL successfully fetched:", coverImage.secure_url || coverImage.url);
-    return res.send({ coverImage: coverImage.secure_url || coverImage.url });
+
+    // Construct the URL pointing to the static files on the server
+    const protocol = req.protocol;
+    const host = req.get('host');
+    const imageUrl = `${protocol}://${host}/public/uploads/${finalFilename}`;
+
+    console.log("Uploaded image successfully served at:", imageUrl);
+    return res.send({ coverImage: imageUrl });
   } catch (error) {
     console.error("Upload route general error:", error);
     res.status(500).send({ message: error.message || "An unexpected error occurred during image upload." });

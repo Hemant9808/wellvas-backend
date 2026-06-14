@@ -3,6 +3,7 @@ const cors = require('cors');
 const express = require('express');
 const mongoose = require('mongoose');
 const session = require('express-session');
+const path = require('path');
 const authRouter = require('./api/routes/AuthRouter');
 const productRouter = require('./api/routes/ProductRouter');
 const CartRouter = require('./api/routes/CartRouter');
@@ -30,6 +31,9 @@ app.use(bodyParser.json({ limit: '30mb', extended: true }));
 app.use(bodyParser.urlencoded({ limit: '30mb', extended: true }));
 // app.use(cors()); 
 app.use(cors({ origin: '*' }));
+
+// Serve static files from the public folder
+app.use('/public', express.static(path.join(__dirname, 'public')));
 
 // Session middleware for OTP functionality
 app.use(session({
