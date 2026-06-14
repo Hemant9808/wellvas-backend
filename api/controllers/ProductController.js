@@ -255,40 +255,62 @@ const uploadImage = async (req, res) => {
     console.log("coverImageLocalPath", coverImageLocalPath);
 
     if (!coverImageLocalPath) {
-      return res.send({ message: "coverImageLocalPath not found" });
+      return res.status(400).send({ message: "No image file uploaded or parsed. Please check if file is sent as 'file' form field." });
     }
 
-    // Prepare optimized output path
-    const parsedPath = path.parse(coverImageLocalPath);
-    const optimizedLocalPath = path.join(parsedPath.dir, `${parsedPath.name}-optimized.webp`);
+    let fileToUpload = coverImageLocalPath;
+    let optimizedLocalPath = null;
 
-    // Compress and convert to next-gen WebP using sharp
-    await sharp(coverImageLocalPath)
-      .webp({ quality: 80 })
-      .toFile(optimizedLocalPath);
+    try {
+      // Prepare optimized output path
+      const parsedPath = path.parse(coverImageLocalPath);
+      optimizedLocalPath = path.join(parsedPath.dir, `${parsedPath.name}-optimized.webp`);
 
-    // Upload the optimized WebP file to Cloudinary
-    const coverImage = await uploadOnCloudinary(optimizedLocalPath);
+      // Compress and convert to next-gen WebP using sharp
+      await sharp(coverImageLocalPath)
+        .webp({ quality: 80 })
+        .toFile(optimizedLocalPath);
+
+      fileToUpload = optimizedLocalPath;
+      console.log("Sharp optimization succeeded:", optimizedLocalPath);
+    } catch (sharpError) {
+      console.error("Sharp optimization failed, falling back to original image file:", sharpError.message);
+      // Fallback: use original file if sharp fails
+      fileToUpload = coverImageLocalPath;
+      optimizedLocalPath = null;
+    }
+
+    // Upload to Cloudinary
+    let coverImage;
+    try {
+      coverImage = await uploadOnCloudinary(fileToUpload);
+    } catch (cloudinaryError) {
+      return res.status(500).send({ message: `Cloudinary upload error: ${cloudinaryError.message}` });
+    }
 
     // Clean up local files (original and optimized temporary)
     try {
-      if (fs.existsSync(coverImageLocalPath)) fs.unlinkSync(coverImageLocalPath);
-      if (fs.existsSync(optimizedLocalPath)) fs.unlinkSync(optimizedLocalPath);
+      if (coverImageLocalPath && fs.existsSync(coverImageLocalPath)) {
+        fs.unlinkSync(coverImageLocalPath);
+      }
+      if (optimizedLocalPath && fs.existsSync(optimizedLocalPath)) {
+        fs.unlinkSync(optimizedLocalPath);
+      }
     } catch (cleanupErr) {
-      console.error("Local file cleanup error:", cleanupErr);
+      console.error("Local temporary file cleanup error:", cleanupErr);
     }
 
     if (coverImage == null) {
-      return res.send({ message: "coverImage is null " });
+      return res.status(500).send({ message: "Cloudinary upload returned null" });
     }
     if (!coverImage.secure_url && !coverImage.url) {
-      return res.send({ message: "cover image url not found" });
+      return res.status(500).send({ message: "Cloudinary response did not contain secure_url or url" });
     }
-    console.log("coverImage", coverImage);
+    console.log("Uploaded image URL successfully fetched:", coverImage.secure_url || coverImage.url);
     return res.send({ coverImage: coverImage.secure_url || coverImage.url });
   } catch (error) {
-    console.log(error);
-    res.send(error.message);
+    console.error("Upload route general error:", error);
+    res.status(500).send({ message: error.message || "An unexpected error occurred during image upload." });
   }
 };
 
